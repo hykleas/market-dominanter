@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>market-fucker</title>
+<style>
+  :root{
+    --bg:#0b0d11; --panel:#12151c; --panel-2:#171b24; --line:#232838;
+    --text:#e6e9f0; --muted:#8b93a7; --accent:#7c5cff; --green:#22c55e;
+    --red:#ef4444; --amber:#f59e0b; --blue:#38bdf8;
+    --mono:ui-monospace,SFMono-Regular,"JetBrains Mono",Consolas,monospace;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--text);
+       font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  a{color:var(--blue)}
+  header{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:16px;align-items:center;
+         padding:14px 20px;background:rgba(11,13,17,.92);backdrop-filter:blur(8px);
+         border-bottom:1px solid var(--line)}
+  .logo{font-weight:700;letter-spacing:.5px;font-size:16px}
+  .logo span{color:var(--accent)}
+  .chip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
+        border-radius:999px;padding:6px 14px;font-family:var(--mono);font-size:12px}
+  .chip b{color:var(--muted);font-weight:500}
+  .badge{font-weight:700;font-size:12px;letter-spacing:.6px;padding:6px 14px;border-radius:999px;
+         border:1px solid transparent}
+  .badge.on{background:rgba(34,197,94,.13);color:var(--green);border-color:rgba(34,197,94,.35)}
+  .badge.off{background:rgba(239,68,68,.12);color:var(--red);border-color:rgba(239,68,68,.32)}
+  .badge.paper{background:rgba(245,158,11,.12);color:var(--amber);border-color:rgba(245,158,11,.3)}
+  .spacer{flex:1}
+  button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);
+         background:var(--panel-2);color:var(--text);padding:9px 16px;transition:.15s}
+  button:hover{border-color:var(--accent)}
+  button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
+  button.danger{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.4);color:#fca5a5}
+  button.sm{padding:4px 10px;font-size:12px;border-radius:8px}
+  main{display:grid;grid-template-columns:320px 1fr;gap:16px;padding:16px;align-items:start}
+  @media (max-width:980px){main{grid-template-columns:1fr}}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .card h2{margin:0;padding:13px 16px;font-size:13px;letter-spacing:.7px;text-transform:uppercase;
+           color:var(--muted);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
+  .card h2 .count{margin-left:auto;font-family:var(--mono);color:var(--accent)}
+  .card .body{padding:14px 16px}
+  .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;
+        letter-spacing:.4px}
+  input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;
+        color:var(--text);padding:8px 10px;font-family:var(--mono);font-size:13px}
+  input:focus{outline:none;border-color:var(--accent)}
+  .stack{display:flex;flex-direction:column;gap:16px}
+  table{width:100%;border-collapse:collapse;font-size:13px}
+  th{position:sticky;top:0;background:var(--panel-2);text-align:left;font-weight:600;font-size:11px;
+     letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:9px 12px;
+     border-bottom:1px solid var(--line)}
+  td{padding:8px 12px;border-bottom:1px solid rgba(35,40,56,.6);font-family:var(--mono);font-size:12px;
+     white-space:nowrap}
+  tbody tr:hover{background:rgba(124,92,255,.06)}
+  .scroll{max-height:340px;overflow:auto}
+  .tag{padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.3px}
+  .tag.buy{background:rgba(34,197,94,.15);color:var(--green)}
+  .tag.rej{background:rgba(239,68,68,.12);color:#fca5a5}
+  .pos{color:var(--green)} .neg{color:var(--red)} .muted{color:var(--muted)}
+  .reason{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:normal;
+          max-width:340px;display:inline-block}
+  .empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}
+  #logs{max-height:190px;overflow:auto;font-family:var(--mono);font-size:11.5px;padding:10px 14px}
+  #logs div{padding:2px 0;border-bottom:1px solid rgba(35,40,56,.35)}
+  .lv-error{color:#fca5a5}.lv-warn{color:var(--amber)}.lv-success{color:var(--green)}.lv-info{color:var(--muted)}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .dot.ok{background:var(--green);box-shadow:0 0 8px var(--green)}
+  .dot.bad{background:var(--red)}
+  .stats{display:flex;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .stats b{color:var(--text)}
+</style>
+</head>
+<body>
+<header>
+  <div class="logo">market<span>-fucker</span></div>
+  <div class="chip"><b>WALLET</b><span id="wallet">-</span></div>
+  <div class="chip"><b>SOL</b><span id="balance">0.000</span></div>
+  <div class="chip"><span class="dot bad" id="wsdot"></span><span id="wstext">baglaniyor</span></div>
+  <div class="badge off" id="status">STOPPED</div>
+  <div class="badge paper" id="mode" style="display:none">PAPER</div>
+  <div class="spacer"></div>
+  <button class="primary" id="toggle">BOTU BASLAT</button>
+</header>
+
+<main>
+  <div class="stack">
+    <section class="card">
+      <h2>Ayarlar</h2>
+      <div class="body">
+        <form id="settings">
+          <div class="grid">
+            <div><label>Alim (SOL)</label><input name="auto_buy_sol" type="number" step="0.001" value="0.01"></div>
+            <div><label>Max bundler %</label><input name="max_bundler" type="number" step="0.1" value="5"></div>
+            <div><label>Max sniper %</label><input name="max_sniper" type="number" step="0.1" value="10"></div>
+            <div><label>Max dev %</label><input name="max_dev_holdings" type="number" step="0.1" value="5"></div>
+            <div><label>Min mcap $</label><input name="min_mcap" type="number" step="100" value="5000"></div>
+            <div><label>Max mcap $</label><input name="max_mcap" type="number" step="100" value="25000"></div>
+            <div><label>Take profit %</label><input name="take_profit" type="number" step="1" value="100"></div>
+            <div><label>Stop loss %</label><input name="stop_loss" type="number" step="1" value="30"></div>
+            <div><label>Max top10 %</label><input name="max_top10" type="number" step="1" value="30"></div>
+            <div><label>Min 5m hacim $</label><input name="min_volume_5m" type="number" step="50" value="500"></div>
+          </div>
+          <button class="primary" type="submit" style="width:100%;margin-top:12px">AYARLARI KAYDET</button>
+        </form>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Istatistik</h2>
+      <div class="body stats">
+        <div>gorulen <b id="st-seen">0</b></div>
+        <div>alinan <b id="st-bought">0</b></div>
+        <div>islem <b id="st-trades">0</b></div>
+        <div>toplam PnL <b id="st-pnl">0.0000 SOL</b></div>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Log</h2>
+      <div id="logs"></div>
+    </section>
+  </div>
+
+  <div class="stack">
+    <section class="card">
+      <h2>Canli Coin Akisi <span class="count" id="feed-count">0</span></h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>saat</th><th>isim</th><th>mcap</th><th>bundler</th><th>sniper</th>
+            <th>dev</th><th>top10</th><th>sonuc</th></tr></thead>
+          <tbody id="feed"><tr><td colspan="8" class="empty">Bot baslatildiginda yeni coinler burada gorunur</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Acik Pozisyonlar <span class="count" id="pos-count">0</span></h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>coin</th><th>giris</th><th>guncel</th><th>PnL %</th><th>yas</th><th></th></tr></thead>
+          <tbody id="positions"><tr><td colspan="6" class="empty">Acik pozisyon yok</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Islem Gecmisi <span class="count" id="trade-count">0</span></h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>coin</th><th>giris</th><th>cikis</th><th>PnL %</th><th>PnL SOL</th><th>tarih</th></tr></thead>
+          <tbody id="trades"><tr><td colspan="6" class="empty">Henuz kapanmis islem yok</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+  </div>
+</main>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const state = { running:false, positions:new Map(), trades:[], feed:[], stats:{} };
+
+const fmtUsd = (v) => (v===null||v===undefined||isNaN(v)) ? "-" :
+  (v >= 1 ? "$" + Number(v).toLocaleString(undefined,{maximumFractionDigits:0})
+          : "$" + Number(v).toPrecision(4));
+const fmtPct = (v) => (v===null||v===undefined||isNaN(v)) ? "-" : Number(v).toFixed(1) + "%";
+const fmtTime = (ts) => new Date((ts||Date.now()/1000)*1000).toLocaleTimeString("tr-TR");
+const fmtDate = (ts) => new Date((ts||0)*1000).toLocaleString("tr-TR");
+const short = (a) => a ? a.slice(0,4) + "…" + a.slice(-4) : "-";
+const age = (ts) => { const s = Math.max(0, Date.now()/1000 - (ts||0));
+  return s < 60 ? Math.floor(s)+"s" : s < 3600 ? Math.floor(s/60)+"d" : Math.floor(s/3600)+"sa"; };
+const cls = (v) => v >= 0 ? "pos" : "neg";
+
+/* ---------- rendering ---------- */
+function renderFeed(){
+  const rows = state.feed.slice(0,120);
+  $("feed-count").textContent = state.feed.length;
+  if(!rows.length) return;
+  $("feed").innerHTML = rows.map(c => `
+    <tr>
+      <td class="muted">${fmtTime(c.time)}</td>
+      <td title="${c.mint||""}">${(c.name||"?").slice(0,18)}</td>
+      <td>${fmtUsd(c.mcap)}</td>
+      <td>${fmtPct(c.bundler)}</td>
+      <td>${fmtPct(c.sniper)}</td>
+      <td>${fmtPct(c.dev)}</td>
+      <td>${fmtPct(c.top10)}</td>
+      <td><span class="tag ${c.result==="BOUGHT"?"buy":"rej"}">${c.result}</span>
+          <span class="reason">${c.reason||""}</span></td>
+    </tr>`).join("");
+}
+
+function renderPositions(){
+  const rows = [...state.positions.values()].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  $("pos-count").textContent = rows.length;
+  $("positions").innerHTML = rows.length ? rows.map(p => `
+    <tr>
+      <td title="${p.mint}">${(p.name||p.mint||"?").slice(0,18)}</td>
+      <td>${fmtUsd(p.entry_price)}</td>
+      <td>${fmtUsd(p.current_price)}</td>
+      <td class="${cls(p.pnl_percent||0)}">${fmtPct(p.pnl_percent)}</td>
+      <td class="muted">${age(p.timestamp)}</td>
+      <td><button class="sm danger" onclick="sellPosition(${p.id})">SAT</button></td>
+    </tr>`).join("") : `<tr><td colspan="6" class="empty">Acik pozisyon yok</td></tr>`;
+}
+
+function renderTrades(){
+  $("trade-count").textContent = state.trades.length;
+  $("trades").innerHTML = state.trades.length ? state.trades.slice(0,100).map(t => `
+    <tr>
+      <td title="${t.mint||""}">${(t.name||"?").slice(0,18)}</td>
+      <td>${fmtUsd(t.entry_price)}</td>
+      <td>${fmtUsd(t.exit_price)}</td>
+      <td class="${cls(t.pnl_percent||0)}">${fmtPct(t.pnl_percent)}</td>
+      <td class="${cls(t.pnl_sol||0)}">${Number(t.pnl_sol||0).toFixed(4)}</td>
+      <td class="muted">${fmtDate(t.exit_time)}</td>
+    </tr>`).join("") : `<tr><td colspan="6" class="empty">Henuz kapanmis islem yok</td></tr>`;
+}
+
+function addLog(message, level){
+  const el = document.createElement("div");
+  el.className = "lv-" + (level||"info");
+  el.textContent = "[" + new Date().toLocaleTimeString("tr-TR") + "] " + message;
+  $("logs").prepend(el);
+  while($("logs").childElementCount > 200) $("logs").lastElementChild.remove();
+}
+
+function setStatus(s){
+  if(!s) return;
+  state.running = !!s.running;
+  const badge = $("status");
+  badge.textContent = s.running ? "RUNNING" : "STOPPED";
+  badge.className = "badge " + (s.running ? "on" : "off");
+  $("toggle").textContent = s.running ? "BOTU DURDUR" : "BOTU BASLAT";
+  $("toggle").className = s.running ? "danger" : "primary";
+  if(s.wallet) $("wallet").textContent = short(s.wallet);
+  $("mode").style.display = s.paper ? "" : "none";
+  if(s.coins_seen !== undefined) $("st-seen").textContent = s.coins_seen;
+  if(s.coins_bought !== undefined) $("st-bought").textContent = s.coins_bought;
+  const dot = $("wsdot");
+  if(s.connected !== undefined){
+    dot.className = "dot " + (s.connected ? "ok" : "bad");
+    $("wstext").textContent = s.connected ? "helius bagli" : "helius kopuk";
+  }
+}
+
+function setStats(st){
+  if(!st) return;
+  $("st-trades").textContent = st.total_trades ?? 0;
+  const pnl = Number(st.total_pnl_sol||0);
+  const el = $("st-pnl");
+  el.textContent = pnl.toFixed(4) + " SOL";
+  el.className = cls(pnl);
+}
+
+function fillSettings(cfg){
+  if(!cfg) return;
+  for(const [key,val] of Object.entries(cfg)){
+    const input = document.querySelector(`#settings [name="${key}"]`);
+    if(input) input.value = val;
+  }
+}
+
+/* ---------- actions ---------- */
+async function api(path, opts){
+  const res = await fetch(path, Object.assign({headers:{"Content-Type":"application/json"}}, opts||{}));
+  return res.json().catch(()=>({}));
+}
+
+$("toggle").onclick = async () => {
+  const path = state.running ? "/api/bot/stop" : "/api/bot/start";
+  await api(path, {method:"POST"});
+  setStatus(await api("/api/status"));
+};
+
+$("settings").onsubmit = async (e) => {
+  e.preventDefault();
+  const body = {};
+  new FormData(e.target).forEach((v,k) => body[k] = parseFloat(v));
+  fillSettings(await api("/api/settings", {method:"POST", body:JSON.stringify(body)}));
+  addLog("Ayarlar kaydedildi", "success");
+};
+
+window.sellPosition = async (id) => {
+  if(!confirm("Pozisyon satilsin mi?")) return;
+  addLog("Manuel satis gonderildi #" + id, "warn");
+  await api("/api/positions/" + id + "/sell", {method:"POST"});
+  refreshTables();
+};
+
+async function refreshTables(){
+  const [positions, trades, status] = await Promise.all([
+    api("/api/positions"), api("/api/trades"), api("/api/status")
+  ]);
+  state.positions = new Map((positions||[]).map(p => [p.id, p]));
+  state.trades = trades || [];
+  setStatus(status); setStats(status.stats);
+  renderPositions(); renderTrades();
+}
+
+/* ---------- websocket ---------- */
+let ws = null;
+function connect(){
+  const proto = location.protocol === "https:" ? "wss" : "ws";
+  ws = new WebSocket(`${proto}://${location.host}/ws`);
+
+  ws.onopen = () => { addLog("Panel websocket baglandi", "success"); };
+  ws.onclose = () => {
+    $("wsdot").className = "dot bad"; $("wstext").textContent = "panel kopuk";
+    setTimeout(connect, 3000);
+  };
+  ws.onerror = () => { try { ws.close(); } catch(e){} };
+  ws.onmessage = (event) => {
+    let msg; try { msg = JSON.parse(event.data); } catch(e){ return; }
+    const d = msg.data || {};
+    switch(msg.type){
+      case "init":
+        setStatus(d.status); fillSettings(d.settings);
+        state.positions = new Map((d.positions||[]).map(p=>[p.id,p]));
+        state.trades = d.trades || [];
+        $("balance").textContent = Number(d.sol_balance||0).toFixed(4);
+        (d.recent||[]).forEach(m => {
+          if(m.type === "new_coin"){ state.feed.unshift(m.data); }
+          else if(m.type === "log"){ addLog(m.data.message, m.data.level); }
+        });
+        renderFeed(); renderPositions(); renderTrades();
+        api("/api/status").then(s => setStats(s.stats));
+        break;
+      case "new_coin":
+        state.feed.unshift(d); state.feed = state.feed.slice(0,200); renderFeed();
+        break;
+      case "position_update": {
+        const pos = state.positions.get(d.id);
+        if(pos){ pos.current_price = d.current_price; pos.pnl_percent = d.pnl_percent; renderPositions(); }
+        else refreshTables();
+        break;
+      }
+      case "position_opened":
+        if(d && d.id){ state.positions.set(d.id, d); renderPositions(); }
+        break;
+      case "position_closed":
+        state.positions.delete(d.id); renderPositions();
+        break;
+      case "trade_closed":
+        addLog(`${d.name} kapandi: ${fmtPct(d.pnl_percent)} (${Number(d.pnl_sol||0).toFixed(4)} SOL)`,
+               (d.pnl_sol||0) >= 0 ? "success" : "error");
+        refreshTables();
+        break;
+      case "balance_update":
+        $("balance").textContent = Number(d.sol_balance||0).toFixed(4);
+        if(d.wallet) $("wallet").textContent = short(d.wallet);
+        $("mode").style.display = d.paper ? "" : "none";
+        break;
+      case "status": setStatus(d); break;
+      case "settings": fillSettings(d); break;
+      case "log": addLog(d.message, d.level); break;
+    }
+  };
+}
+
+setInterval(() => { if(ws && ws.readyState === 1) ws.send("ping"); }, 20000);
+setInterval(renderPositions, 5000);   // keeps the age column ticking
+connect();
+refreshTables();
+api("/api/settings").then(fillSettings);
+</script>
+</body>
+</html>
