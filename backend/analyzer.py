@@ -28,6 +28,7 @@ SYSTEM_PROGRAM = "11111111111111111111111111111111"
 # Dex ids where liquidity sits in a program-owned curve/pool that cannot be pulled.
 LOCKED_LP_DEXES = {"pumpfun", "pump.fun", "pumpswap", "moonshot"}
 MAX_EARLY_TX = 40          # cap on launch-window transactions parsed per coin
+SIG_PAGE_LIMIT = 5         # how far back the signature pager may walk
 SNIPER_WINDOW_SEC = 15.0   # buys this soon after launch count as snipers
 _early_sem = asyncio.Semaphore(5)
 
@@ -205,21 +206,53 @@ async def _real_holders(mint: str) -> Tuple[Optional[float], Dict[str, float]]:
     return circulating, holders
 
 
+async def _oldest_signatures(mint: str) -> Tuple[List[Dict[str, Any]], bool]:
+    """Oldest page of signatures for a mint, ascending.
+
+    getSignaturesForAddress returns newest-first, so page backwards until the
+    end of history. Returns (signatures, complete); `complete` is False when the
+    launch could not be reached, which callers must treat as missing data.
+    """
+    page_size = 100
+    page = await rpc.get_signatures(mint, limit=page_size)
+    if not page:
+        return [], False
+    pages = 1
+    complete = len(page) < page_size
+    while not complete and pages < SIG_PAGE_LIMIT:
+        older = await rpc.get_signatures(mint, limit=page_size, before=page[-1]["signature"])
+        pages += 1
+        if not older:
+            complete = True  # nothing older left: this page holds the launch
+            break
+        page = older
+        complete = len(page) < page_size
+    sigs = [s for s in page if not s.get("err")]
+    sigs.sort(key=lambda s: (s.get("blockTime") or 0, s.get("slot") or 0))
+    return sigs, complete
+
+
 async def _early_buyers(mint: str) -> Tuple[Optional[float], Optional[float], Optional[float]]:
     """(bundled_amount, sniped_amount, launch_time) from launch-window transactions.
 
     bundled = tokens bought inside the launch slot itself (bundled with create)
     sniped  = tokens bought within SNIPER_WINDOW_SEC after the launch
+
+    Returns Nones when the launch window cannot be established or is busier than
+    MAX_EARLY_TX - an unverifiable metric must fail the coin, not pass it.
     """
-    sigs = await rpc.get_signatures(mint, limit=MAX_EARLY_TX * 2)
-    sigs = [s for s in sigs if not s.get("err")]
-    if not sigs:
+    sigs, complete = await _oldest_signatures(mint)
+    if not sigs or not complete:
         return None, None, None
-    sigs.sort(key=lambda s: (s.get("blockTime") or 0, s.get("slot") or 0))
     launch = sigs[0]
     launch_slot = launch.get("slot")
     launch_time = launch.get("blockTime") or 0
-    window = sigs[:MAX_EARLY_TX]
+    window = [s for s in sigs
+              if s.get("slot") == launch_slot
+              or (s.get("blockTime") or 0) - launch_time <= SNIPER_WINDOW_SEC]
+    if len(window) > MAX_EARLY_TX:
+        log.debug("Launch penceresi cok yogun (%d islem), metrik atlandi: %s", len(window), mint)
+        return None, None, None
 
     async def load(sig: Dict[str, Any]) -> Tuple[Dict[str, Any], Optional[Dict[str, Any]]]:
         async with _early_sem:
@@ -261,10 +294,9 @@ async def _early_buyers(mint: str) -> Tuple[Optional[float], Optional[float], Op
 
 async def _creator_of(mint: str) -> Optional[str]:
     """Fee payer of the oldest transaction touching the mint = launcher wallet."""
-    sigs = await rpc.get_signatures(mint, limit=MAX_EARLY_TX * 2)
-    if not sigs:
+    sigs, complete = await _oldest_signatures(mint)
+    if not sigs or not complete:
         return None
-    sigs.sort(key=lambda s: (s.get("blockTime") or 0, s.get("slot") or 0))
     tx = await rpc.get_transaction(sigs[0]["signature"])
     if not tx:
         return None

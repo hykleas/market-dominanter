@@ -237,6 +237,7 @@ async def buy(mint: str, name: str = "?", price_hint: Optional[float] = None) ->
         sol_usd = await sol_price_usd()
         tokens = (amount_sol * sol_usd / entry_price) if (entry_price > 0 and sol_usd > 0) else 0.0
         pos_id = db.add_position(mint, name, entry_price, tokens, amount_sol)
+        state.bot_state.coins_bought += 1
         state.bus.log("[PAPER] ALINDI %s - %.4f SOL @ $%.8f" % (name, amount_sol, entry_price), "success")
         state.bus.publish("position_opened", position_payload(db.get_position(pos_id)))
         return pos_id

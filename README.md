@@ -75,6 +75,13 @@ alanlarini dondurmez — sadece fiyat, mcap/fdv, hacim ve likidite verir. Bu yuz
 | sniper% | Launch'tan sonraki 15sn icinde alinan token miktari / dolasimdaki arz |
 | LP burn | pump.fun / pumpswap / moonshot gibi program sahipli likiditede `true`, dogrulanamayan durumda `None` → FAIL |
 
+`bundler%` / `sniper%` sadece launch islemine kadar geri sayfalanabildiginde hesaplanir;
+launch penceresinde 40'tan fazla islem varsa metrik "dogrulanamadi" sayilir ve coin elenir.
+
+**HELIUS_API_KEY olmadan calismaz:** anahtar yoksa RPC `api.mainnet-beta.solana.com`'a duser,
+o da `getTokenLargestAccounts` gibi cagrilari reddeder → `dev` ve `top10` verisi bos kalir →
+her coin FAIL alir (kural geregi). Yani anahtarsiz bot hicbir sey satin almaz.
+
 Bunlar heuristiktir, ticari holder API'lerinin sonuclariyla birebir ayni cikmayabilir.
 Odemeli bir holder API'n varsa `analyzer.collect_metrics` icine tek noktadan baglanabilir
 (Dexscreener yanitinda `bundlerPercent` vb. alanlar varsa zaten oncelikli kullanilir).

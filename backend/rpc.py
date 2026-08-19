@@ -106,8 +106,12 @@ async def get_token_balance_of_owner(owner: str, mint: str) -> float:
     return total
 
 
-async def get_signatures(address: str, limit: int = 100) -> List[Dict[str, Any]]:
-    res = await call("getSignaturesForAddress", [address, {"limit": limit}])
+async def get_signatures(address: str, limit: int = 100,
+                         before: Optional[str] = None) -> List[Dict[str, Any]]:
+    opts: Dict[str, Any] = {"limit": limit}
+    if before:
+        opts["before"] = before
+    res = await call("getSignaturesForAddress", [address, opts])
     return res if isinstance(res, list) else []
 
 
@@ -137,8 +141,9 @@ async def send_raw_transaction(b64_tx: str) -> Optional[str]:
 
 async def confirm_signature(signature: str, timeout: float = 60.0) -> bool:
     """Poll signature status until finalized/confirmed or timeout."""
-    deadline = asyncio.get_event_loop().time() + timeout
-    while asyncio.get_event_loop().time() < deadline:
+    loop = asyncio.get_running_loop()
+    deadline = loop.time() + timeout
+    while loop.time() < deadline:
         res = await call("getSignatureStatuses", [[signature], {"searchTransactionHistory": True}])
         if isinstance(res, dict):
             value = (res.get("value") or [None])[0]

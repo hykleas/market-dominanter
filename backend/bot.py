@@ -82,11 +82,15 @@ async def _extract_mint(signature: str) -> Tuple[Optional[str], Optional[str]]:
 
 async def _handle_new_mint(mint: str, creator: Optional[str]) -> None:
     """Analyze one launch and buy it when every rule passes."""
+    delay = float(state.settings.analyze_delay)
+    state.bus.log("Yeni coin: %s - analiz %ss sonra" % (mint[:10], int(delay)), "info")
+    if delay > 0:
+        # Waited outside the semaphore so a burst of launches does not queue up
+        # behind each other's countdowns.
+        await asyncio.sleep(delay)
     async with _analysis_sem:
         try:
-            state.bus.log("Yeni coin: %s - analiz %ss sonra" % (mint[:10], int(state.settings.analyze_delay)),
-                          "info")
-            result = await analyzer.analyze(mint, creator=creator)
+            result = await analyzer.analyze(mint, creator=creator, delay=0)
             metrics = result.metrics or analyzer.Metrics(mint=mint)
             row = metrics.feed_row()
             row["time"] = time.time()
@@ -95,20 +99,17 @@ async def _handle_new_mint(mint: str, creator: Optional[str]) -> None:
             state.bot_state.coins_seen += 1
 
             if not result.passed:
-                state.bus.publish("new_coin", row)
-                return
-
-            if not state.bot_state.running:
+                pass
+            elif not state.bot_state.running:
                 row["result"] = "REJECTED"
                 row["reason"] = "bot durduruldu"
-                state.bus.publish("new_coin", row)
-                return
-
-            pos_id = await trader.buy(mint, metrics.name, price_hint=metrics.price_usd)
-            if pos_id is None:
-                row["result"] = "REJECTED"
-                row["reason"] = "alim basarisiz"
+            else:
+                pos_id = await trader.buy(mint, metrics.name, price_hint=metrics.price_usd)
+                if pos_id is None:
+                    row["result"] = "REJECTED"
+                    row["reason"] = "alim basarisiz"
             state.bus.publish("new_coin", row)
+            state.bus.publish("status", status())
         except Exception as exc:
             log.error("Coin islenemedi (%s): %s", mint, exc)
             state.bus.log("Coin islenemedi (%s): %s" % (mint[:10], exc), "error")
@@ -148,11 +149,15 @@ async def listen_loop() -> None:
         "method": "logsSubscribe",
         "params": [{"mentions": [state.PUMP_FUN_PROGRAM]}, {"commitment": "processed"}],
     })
+    no_key_ticks = 0
     while True:
         if not state.HELIUS_API_KEY:
-            state.bus.log("HELIUS_API_KEY yok - coin dinleyici baslatilamiyor (.env doldurun)", "error")
+            if no_key_ticks % 8 == 0:  # ~2 dakikada bir, log spam etmeden
+                state.bus.log("HELIUS_API_KEY yok - coin dinleyici baslatilamiyor (.env doldurun)", "error")
+            no_key_ticks += 1
             await asyncio.sleep(15)
             continue
+        no_key_ticks = 0
         try:
             async with websockets.connect(state.ws_url(), ping_interval=20, ping_timeout=20,
                                           max_size=8 * 1024 * 1024) as ws:
