@@ -27,10 +27,13 @@ log = logging.getLogger("market-fucker")
 SYSTEM_PROGRAM = "11111111111111111111111111111111"
 # Dex ids where liquidity sits in a program-owned curve/pool that cannot be pulled.
 LOCKED_LP_DEXES = {"pumpfun", "pump.fun", "pumpswap", "moonshot"}
-MAX_EARLY_TX = 40          # cap on launch-window transactions parsed per coin
+# A hot pump.fun launch takes well over a hundred trades in its first seconds, so
+# this cap has to be generous: anything below it silently turns every busy coin
+# into "unverifiable" (= rejected). Lower it only if the RPC plan cannot keep up.
+MAX_EARLY_TX = 150         # launch-window transactions parsed per coin
 SIG_PAGE_LIMIT = 5         # how far back the signature pager may walk
 SNIPER_WINDOW_SEC = 15.0   # buys this soon after launch count as snipers
-_early_sem = asyncio.Semaphore(5)
+_early_sem = asyncio.Semaphore(8)
 
 _dex_client: Optional[httpx.AsyncClient] = None
 
@@ -206,8 +209,41 @@ async def _real_holders(mint: str) -> Tuple[Optional[float], Dict[str, float]]:
     return circulating, holders
 
 
+async def _signatures_since_launch(mint: str, launch_signature: str) -> Tuple[List[Dict[str, Any]], bool]:
+    """Every signature after the known create transaction, ascending.
+
+    Anchoring on the launch signature is far more reliable than paging back
+    through history: a pump.fun mint collects hundreds of FAILED sniper attempts
+    within seconds, and blind paging runs out of pages before reaching the launch.
+    """
+    collected: List[Dict[str, Any]] = []
+    before: Optional[str] = None
+    complete = False
+    for _ in range(SIG_PAGE_LIMIT):
+        page = await rpc.get_signatures(mint, limit=100, before=before, until=launch_signature)
+        if not page:
+            complete = True
+            break
+        collected.extend(page)
+        if len(page) < 100:
+            complete = True
+            break
+        before = page[-1]["signature"]
+
+    launch_tx = await rpc.get_transaction(launch_signature)
+    if not launch_tx:
+        return [], False
+    launch_entry = {"signature": launch_signature, "slot": launch_tx.get("slot"),
+                    "blockTime": launch_tx.get("blockTime"), "err": (launch_tx.get("meta") or {}).get("err")}
+
+    sigs = [s for s in collected if not s.get("err")]
+    sigs.append(launch_entry)
+    sigs.sort(key=lambda s: (s.get("blockTime") or 0, s.get("slot") or 0))
+    return sigs, complete
+
+
 async def _oldest_signatures(mint: str) -> Tuple[List[Dict[str, Any]], bool]:
-    """Oldest page of signatures for a mint, ascending.
+    """Oldest page of signatures for a mint, ascending (no launch signature known).
 
     getSignaturesForAddress returns newest-first, so page backwards until the
     end of history. Returns (signatures, complete); `complete` is False when the
@@ -232,7 +268,8 @@ async def _oldest_signatures(mint: str) -> Tuple[List[Dict[str, Any]], bool]:
     return sigs, complete
 
 
-async def _early_buyers(mint: str) -> Tuple[Optional[float], Optional[float], Optional[float]]:
+async def _early_buyers(mint: str, launch_signature: Optional[str] = None
+                        ) -> Tuple[Optional[float], Optional[float], Optional[float]]:
     """(bundled_amount, sniped_amount, launch_time) from launch-window transactions.
 
     bundled = tokens bought inside the launch slot itself (bundled with create)
@@ -241,7 +278,10 @@ async def _early_buyers(mint: str) -> Tuple[Optional[float], Optional[float], Op
     Returns Nones when the launch window cannot be established or is busier than
     MAX_EARLY_TX - an unverifiable metric must fail the coin, not pass it.
     """
-    sigs, complete = await _oldest_signatures(mint)
+    if launch_signature:
+        sigs, complete = await _signatures_since_launch(mint, launch_signature)
+    else:
+        sigs, complete = await _oldest_signatures(mint)
     if not sigs or not complete:
         return None, None, None
     launch = sigs[0]
@@ -310,7 +350,8 @@ async def _creator_of(mint: str) -> Optional[str]:
         return None
 
 
-async def collect_metrics(mint: str, creator: Optional[str] = None, deep: bool = True) -> Metrics:
+async def collect_metrics(mint: str, creator: Optional[str] = None, deep: bool = True,
+                          launch_signature: Optional[str] = None) -> Metrics:
     metrics = Metrics(mint=mint)
     pair = await fetch_dexscreener(mint)
     if pair:
@@ -346,7 +387,7 @@ async def collect_metrics(mint: str, creator: Optional[str] = None, deep: bool =
 
     try:
         if metrics.bundler is None or metrics.sniper is None:
-            bundled, sniped, _ = await _early_buyers(mint)
+            bundled, sniped, _ = await _early_buyers(mint, launch_signature=launch_signature)
             base = metrics.supply
             if base and bundled is not None:
                 if metrics.bundler is None:
@@ -402,14 +443,15 @@ def evaluate(metrics: Metrics, cfg: state.Settings) -> AnalysisResult:
 
 
 async def analyze(mint: str, creator: Optional[str] = None, delay: Optional[float] = None,
-                  deep: bool = True) -> AnalysisResult:
+                  deep: bool = True, launch_signature: Optional[str] = None) -> AnalysisResult:
     """Wait for launch data to populate, gather metrics, apply the rules."""
     cfg = state.settings
     wait = cfg.analyze_delay if delay is None else delay
     if wait > 0:
         await asyncio.sleep(wait)
     try:
-        metrics = await collect_metrics(mint, creator=creator, deep=deep)
+        metrics = await collect_metrics(mint, creator=creator, deep=deep,
+                                        launch_signature=launch_signature)
     except Exception as exc:
         log.error("Analiz hatasi (%s): %s", mint, exc)
         return AnalysisResult(passed=False, reasons=["analiz hatasi: %s" % exc],

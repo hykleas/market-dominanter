@@ -4,6 +4,7 @@ from __future__ import annotations
 import asyncio
 import itertools
 import logging
+import os
 from typing import Any, Dict, List, Optional
 
 import httpx
@@ -14,6 +15,36 @@ log = logging.getLogger("market-fucker")
 
 _ids = itertools.count(1)
 _client: Optional[httpx.AsyncClient] = None
+
+# Helius' free plan allows ~10 requests/sec. Analysis is RPC-heavy (a busy launch
+# costs >100 getTransaction calls), so without a global pacer the calls collide,
+# come back 429, and every metric silently degrades to "no data" = coin rejected.
+RPC_RPS = float(os.getenv("RPC_RPS", "9"))
+stats = {"calls": 0, "rate_limited": 0, "failed": 0}
+
+
+class _Pacer:
+    """Spaces out every RPC call across the whole process."""
+
+    def __init__(self, rps: float) -> None:
+        self.interval = 1.0 / rps if rps > 0 else 0.0
+        self._lock = asyncio.Lock()
+        self._next = 0.0
+
+    async def wait(self) -> None:
+        if self.interval <= 0:
+            return
+        async with self._lock:
+            loop = asyncio.get_running_loop()
+            now = loop.time()
+            start = max(now, self._next)
+            self._next = start + self.interval
+            delay = start - now
+        if delay > 0:
+            await asyncio.sleep(delay)
+
+
+_pacer = _Pacer(RPC_RPS)
 
 
 def client() -> httpx.AsyncClient:
@@ -35,8 +66,13 @@ async def call(method: str, params: List[Any], retries: int = 2) -> Any:
     payload = {"jsonrpc": "2.0", "id": next(_ids), "method": method, "params": params}
     for attempt in range(retries + 1):
         try:
+            await _pacer.wait()
+            stats["calls"] += 1
             resp = await client().post(state.rpc_url(), json=payload)
             if resp.status_code == 429:
+                stats["rate_limited"] += 1
+                if stats["rate_limited"] % 25 == 1:
+                    log.warning("RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin")
                 await asyncio.sleep(1.5 * (attempt + 1))
                 continue
             resp.raise_for_status()
@@ -47,6 +83,7 @@ async def call(method: str, params: List[Any], retries: int = 2) -> Any:
             return body.get("result")
         except Exception as exc:
             if attempt >= retries:
+                stats["failed"] += 1
                 log.debug("RPC %s basarisiz: %s", method, exc)
                 return None
             await asyncio.sleep(1.0 * (attempt + 1))
@@ -106,11 +143,13 @@ async def get_token_balance_of_owner(owner: str, mint: str) -> float:
     return total
 
 
-async def get_signatures(address: str, limit: int = 100,
-                         before: Optional[str] = None) -> List[Dict[str, Any]]:
+async def get_signatures(address: str, limit: int = 100, before: Optional[str] = None,
+                         until: Optional[str] = None) -> List[Dict[str, Any]]:
     opts: Dict[str, Any] = {"limit": limit}
     if before:
         opts["before"] = before
+    if until:
+        opts["until"] = until
     res = await call("getSignaturesForAddress", [address, opts])
     return res if isinstance(res, list) else []
 

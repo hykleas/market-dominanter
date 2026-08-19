@@ -21,7 +21,7 @@ log = logging.getLogger("market-fucker")
 CREATE_MARKERS = ("Program log: Instruction: Create", "Program log: Instruction: CreateV2",
                   "Program log: Create:")
 RECONNECT_DELAY = 5.0
-MAX_PARALLEL_ANALYSIS = 4
+MAX_PARALLEL_ANALYSIS = int(__import__("os").getenv("MAX_PARALLEL_ANALYSIS", "2"))
 
 _seen: "dict[str, float]" = {}
 _analysis_sem = asyncio.Semaphore(MAX_PARALLEL_ANALYSIS)
@@ -80,7 +80,8 @@ async def _extract_mint(signature: str) -> Tuple[Optional[str], Optional[str]]:
     return None, creator
 
 
-async def _handle_new_mint(mint: str, creator: Optional[str]) -> None:
+async def _handle_new_mint(mint: str, creator: Optional[str],
+                           launch_signature: Optional[str] = None) -> None:
     """Analyze one launch and buy it when every rule passes."""
     delay = float(state.settings.analyze_delay)
     state.bus.log("Yeni coin: %s - analiz %ss sonra" % (mint[:10], int(delay)), "info")
@@ -90,7 +91,8 @@ async def _handle_new_mint(mint: str, creator: Optional[str]) -> None:
         await asyncio.sleep(delay)
     async with _analysis_sem:
         try:
-            result = await analyzer.analyze(mint, creator=creator, delay=0)
+            result = await analyzer.analyze(mint, creator=creator, delay=0,
+                                            launch_signature=launch_signature)
             metrics = result.metrics or analyzer.Metrics(mint=mint)
             row = metrics.feed_row()
             row["time"] = time.time()
@@ -136,7 +138,7 @@ async def _process_notification(payload: Dict[str, Any]) -> None:
             return
         if not state.bot_state.running:
             return
-        _spawn(_handle_new_mint(mint, creator))
+        _spawn(_handle_new_mint(mint, creator, launch_signature=signature))
     except Exception as exc:
         log.debug("Bildirim islenemedi: %s", exc)
 
