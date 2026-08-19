@@ -44,6 +44,7 @@ async def lifespan(app: FastAPI):
     trader.load_wallet()
     if trader.is_paper():
         state.bus.log("PAPER modu aktif - gercek islem yapilmayacak", "warn")
+        asyncio.create_task(trader.ensure_paper_funded())
     for coro in (bot.listen_loop(), trader.monitor_loop(), trader.balance_loop()):
         _background.append(asyncio.create_task(coro))
     state.bus.log("Sunucu hazir", "success")
@@ -82,7 +83,38 @@ async def api_status():
     payload["sol_balance"] = await trader.wallet_balance()
     payload["open_positions"] = len(db.get_open_positions())
     payload["stats"] = db.stats()
+    payload["paper_wallet"] = trader.paper_wallet()
+    payload["sol_usd"] = await trader.sol_price_usd()
     return payload
+
+
+@app.get("/api/paper")
+async def api_paper():
+    return trader.paper_wallet()
+
+
+@app.post("/api/paper/reset")
+async def api_paper_reset(payload: dict | None = None):
+    start_usd = (payload or {}).get("start_usd")
+    return await trader.reset_paper_wallet(float(start_usd) if start_usd else None)
+
+
+@app.post("/api/mode")
+async def api_mode(payload: dict):
+    """Switch between paper and live execution. Live needs a usable wallet."""
+    want_paper = bool(payload.get("paper", True))
+    if not want_paper and not trader.can_go_live():
+        return JSONResponse(
+            {"error": "Canli mod icin .env icinde gecerli WALLET_PRIVATE_KEY gerekli",
+             "paper": True}, status_code=400)
+    state.settings.update({"paper_trading": want_paper})
+    if want_paper:
+        await trader.ensure_paper_funded()
+    state.bus.log("Mod degisti: " + ("PAPER" if want_paper else "LIVE (gercek para)"),
+                  "warn" if want_paper else "error")
+    state.bus.publish("status", bot.status())
+    await trader.push_balance()
+    return {"paper": trader.is_paper()}
 
 
 @app.post("/api/bot/start")
@@ -121,8 +153,13 @@ async def api_trades():
 
 
 @app.post("/api/positions/{position_id}/sell")
-async def api_sell(position_id: int):
-    ok = await trader.sell(position_id, reason="manual")
+async def api_sell(position_id: int, payload: dict | None = None):
+    """Manual exit. Body {"percent": 50} sells half; no body sells everything."""
+    percent = (payload or {}).get("percent")
+    if percent:
+        ok = await trader.sell_portion(position_id, float(percent), tier="manual")
+    else:
+        ok = await trader.sell(position_id, reason="manual")
     return JSONResponse({"ok": ok}, status_code=200 if ok else 400)
 
 
@@ -141,6 +178,9 @@ async def websocket_endpoint(ws: WebSocket):
             "trades": db.get_trades(50),
             "recent": state.bus.recent(),
             "sol_balance": await trader.wallet_balance(),
+            "paper_wallet": trader.paper_wallet(),
+            "sol_usd": await trader.sol_price_usd(),
+            "stats": db.stats(),
         }})
 
         async def pump():

@@ -200,5 +200,6 @@ def status() -> Dict[str, Any]:
         "coins_seen": state.bot_state.coins_seen,
         "coins_bought": state.bot_state.coins_bought,
         "paper": trader.is_paper(),
+        "can_go_live": trader.can_go_live(),
         "wallet": trader.wallet_pubkey(),
     }

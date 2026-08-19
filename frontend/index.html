@@ -14,74 +14,103 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--text);
        font:14px/1.5 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
-  a{color:var(--blue)}
-  header{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:16px;align-items:center;
-         padding:14px 20px;background:rgba(11,13,17,.92);backdrop-filter:blur(8px);
+  header{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:10px;align-items:center;
+         padding:12px 18px;background:rgba(11,13,17,.94);backdrop-filter:blur(8px);
          border-bottom:1px solid var(--line)}
-  .logo{font-weight:700;letter-spacing:.5px;font-size:16px}
+  .logo{font-weight:700;letter-spacing:.5px;font-size:16px;margin-right:4px}
   .logo span{color:var(--accent)}
-  .chip{display:flex;align-items:center;gap:8px;background:var(--panel);border:1px solid var(--line);
-        border-radius:999px;padding:6px 14px;font-family:var(--mono);font-size:12px}
-  .chip b{color:var(--muted);font-weight:500}
-  .badge{font-weight:700;font-size:12px;letter-spacing:.6px;padding:6px 14px;border-radius:999px;
-         border:1px solid transparent}
+  .chip{display:flex;align-items:center;gap:7px;background:var(--panel);border:1px solid var(--line);
+        border-radius:999px;padding:6px 13px;font-family:var(--mono);font-size:12px;white-space:nowrap}
+  .chip b{color:var(--muted);font-weight:500;font-size:10.5px;letter-spacing:.5px}
+  .chip.dim{opacity:.42}
+  .badge{font-weight:700;font-size:11.5px;letter-spacing:.6px;padding:6px 13px;border-radius:999px;
+         border:1px solid transparent;white-space:nowrap}
   .badge.on{background:rgba(34,197,94,.13);color:var(--green);border-color:rgba(34,197,94,.35)}
   .badge.off{background:rgba(239,68,68,.12);color:var(--red);border-color:rgba(239,68,68,.32)}
   .badge.paper{background:rgba(245,158,11,.12);color:var(--amber);border-color:rgba(245,158,11,.3)}
+  .badge.live{background:rgba(239,68,68,.16);color:#fca5a5;border-color:rgba(239,68,68,.5)}
   .spacer{flex:1}
   button{font:inherit;cursor:pointer;border-radius:10px;border:1px solid var(--line);
-         background:var(--panel-2);color:var(--text);padding:9px 16px;transition:.15s}
+         background:var(--panel-2);color:var(--text);padding:8px 15px;transition:.15s}
   button:hover{border-color:var(--accent)}
   button.primary{background:var(--accent);border-color:var(--accent);color:#fff;font-weight:600}
   button.danger{background:rgba(239,68,68,.14);border-color:rgba(239,68,68,.4);color:#fca5a5}
-  button.sm{padding:4px 10px;font-size:12px;border-radius:8px}
-  main{display:grid;grid-template-columns:320px 1fr;gap:16px;padding:16px;align-items:start}
-  @media (max-width:980px){main{grid-template-columns:1fr}}
+  button.sm{padding:3px 9px;font-size:11.5px;border-radius:7px}
+  /* mod anahtari */
+  .switch{display:flex;align-items:center;gap:9px;background:var(--panel);border:1px solid var(--line);
+          border-radius:999px;padding:5px 12px 5px 8px;font-size:11.5px;font-weight:600;letter-spacing:.4px}
+  .track{width:42px;height:22px;border-radius:999px;background:rgba(245,158,11,.35);position:relative;
+         cursor:pointer;transition:.2s;flex:none}
+  .track.live{background:rgba(239,68,68,.55)}
+  .knob{position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;
+        transition:.2s}
+  .track.live .knob{left:23px}
+  main{display:grid;grid-template-columns:330px 1fr;gap:16px;padding:16px;align-items:start}
+  @media (max-width:1080px){main{grid-template-columns:1fr}}
   .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
-  .card h2{margin:0;padding:13px 16px;font-size:13px;letter-spacing:.7px;text-transform:uppercase;
+  .card h2{margin:0;padding:12px 16px;font-size:12.5px;letter-spacing:.7px;text-transform:uppercase;
            color:var(--muted);border-bottom:1px solid var(--line);display:flex;align-items:center;gap:8px}
   .card h2 .count{margin-left:auto;font-family:var(--mono);color:var(--accent)}
   .card .body{padding:14px 16px}
   .grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  label{display:block;font-size:11px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;
+  .sec{grid-column:1/-1;font-size:10.5px;letter-spacing:.8px;text-transform:uppercase;color:var(--accent);
+       margin:8px 0 -2px;border-top:1px solid var(--line);padding-top:10px}
+  label{display:block;font-size:10.5px;color:var(--muted);margin-bottom:4px;text-transform:uppercase;
         letter-spacing:.4px}
   input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:9px;
-        color:var(--text);padding:8px 10px;font-family:var(--mono);font-size:13px}
+        color:var(--text);padding:7px 10px;font-family:var(--mono);font-size:12.5px}
   input:focus{outline:none;border-color:var(--accent)}
   .stack{display:flex;flex-direction:column;gap:16px}
   table{width:100%;border-collapse:collapse;font-size:13px}
-  th{position:sticky;top:0;background:var(--panel-2);text-align:left;font-weight:600;font-size:11px;
-     letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:9px 12px;
+  th{position:sticky;top:0;background:var(--panel-2);text-align:left;font-weight:600;font-size:10.5px;
+     letter-spacing:.5px;text-transform:uppercase;color:var(--muted);padding:8px 11px;
      border-bottom:1px solid var(--line)}
-  td{padding:8px 12px;border-bottom:1px solid rgba(35,40,56,.6);font-family:var(--mono);font-size:12px;
+  td{padding:7px 11px;border-bottom:1px solid rgba(35,40,56,.6);font-family:var(--mono);font-size:11.5px;
      white-space:nowrap}
   tbody tr:hover{background:rgba(124,92,255,.06)}
-  .scroll{max-height:340px;overflow:auto}
-  .tag{padding:2px 8px;border-radius:6px;font-size:11px;font-weight:700;letter-spacing:.3px}
+  .scroll{max-height:330px;overflow:auto}
+  .tag{padding:2px 7px;border-radius:6px;font-size:10.5px;font-weight:700;letter-spacing:.3px}
   .tag.buy{background:rgba(34,197,94,.15);color:var(--green)}
   .tag.rej{background:rgba(239,68,68,.12);color:#fca5a5}
+  .tag.pap{background:rgba(245,158,11,.14);color:var(--amber)}
+  .tag.liv{background:rgba(56,189,248,.14);color:var(--blue)}
+  .tier{display:inline-block;width:20px;text-align:center;border-radius:5px;font-size:10px;
+        font-weight:700;padding:1px 0;margin-right:2px;background:rgba(139,147,167,.14);color:var(--muted)}
+  .tier.hit{background:rgba(34,197,94,.18);color:var(--green)}
+  .bar{height:5px;border-radius:3px;background:rgba(139,147,167,.2);overflow:hidden;min-width:46px}
+  .bar i{display:block;height:100%;background:var(--accent)}
   .pos{color:var(--green)} .neg{color:var(--red)} .muted{color:var(--muted)}
-  .reason{font-family:var(--mono);font-size:11px;color:var(--muted);white-space:normal;
-          max-width:340px;display:inline-block}
+  .reason{font-family:var(--mono);font-size:10.5px;color:var(--muted);white-space:normal;
+          max-width:300px;display:inline-block}
   .empty{padding:22px;text-align:center;color:var(--muted);font-size:13px}
-  #logs{max-height:190px;overflow:auto;font-family:var(--mono);font-size:11.5px;padding:10px 14px}
+  #logs{max-height:180px;overflow:auto;font-family:var(--mono);font-size:11px;padding:9px 14px}
   #logs div{padding:2px 0;border-bottom:1px solid rgba(35,40,56,.35)}
   .lv-error{color:#fca5a5}.lv-warn{color:var(--amber)}.lv-success{color:var(--green)}.lv-info{color:var(--muted)}
   .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
   .dot.ok{background:var(--green);box-shadow:0 0 8px var(--green)}
   .dot.bad{background:var(--red)}
-  .stats{display:flex;gap:12px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted)}
+  .stats{display:flex;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:12px;color:var(--muted)}
   .stats b{color:var(--text)}
 </style>
 </head>
 <body>
 <header>
   <div class="logo">market<span>-fucker</span></div>
-  <div class="chip"><b>WALLET</b><span id="wallet">-</span></div>
-  <div class="chip"><b>SOL</b><span id="balance">0.000</span></div>
+
+  <div class="switch">
+    <div class="track" id="modeTrack" title="Paper / Live"><div class="knob"></div></div>
+    <span id="modeLabel">PAPER</span>
+  </div>
+
+  <div class="chip" id="walletChip"><b>CUZDAN</b><span id="wallet">-</span></div>
+  <div class="chip" id="realChip"><b>GERCEK</b><span id="balance">0.0000</span> SOL</div>
+  <div class="chip"><b>PAPER</b><span id="paperBal">0.0000</span> SOL <span class="muted" id="paperUsd">($0)</span></div>
+  <div class="chip"><b>BUGUN</b><span id="paperToday">0.0000</span></div>
+  <div class="chip"><b>TOPLAM</b><span id="paperAll">0.0000</span></div>
+  <button class="sm" id="resetPaper">PAPER SIFIRLA</button>
+
   <div class="chip"><span class="dot bad" id="wsdot"></span><span id="wstext">baglaniyor</span></div>
   <div class="badge off" id="status">STOPPED</div>
-  <div class="badge paper" id="mode" style="display:none">PAPER</div>
   <div class="spacer"></div>
   <button class="primary" id="toggle">BOTU BASLAT</button>
 </header>
@@ -93,16 +122,31 @@
       <div class="body">
         <form id="settings">
           <div class="grid">
+            <div class="sec">Filtre</div>
             <div><label>Alim (SOL)</label><input name="auto_buy_sol" type="number" step="0.001" value="0.01"></div>
             <div><label>Max bundler %</label><input name="max_bundler" type="number" step="0.1" value="5"></div>
             <div><label>Max sniper %</label><input name="max_sniper" type="number" step="0.1" value="10"></div>
             <div><label>Max dev %</label><input name="max_dev_holdings" type="number" step="0.1" value="5"></div>
             <div><label>Min mcap $</label><input name="min_mcap" type="number" step="100" value="5000"></div>
             <div><label>Max mcap $</label><input name="max_mcap" type="number" step="100" value="25000"></div>
-            <div><label>Take profit %</label><input name="take_profit" type="number" step="1" value="100"></div>
-            <div><label>Stop loss %</label><input name="stop_loss" type="number" step="1" value="30"></div>
             <div><label>Max top10 %</label><input name="max_top10" type="number" step="1" value="30"></div>
             <div><label>Min 5m hacim $</label><input name="min_volume_5m" type="number" step="50" value="500"></div>
+
+            <div class="sec">Satis stratejisi</div>
+            <div><label>Tier 1 (x)</label><input name="tier1_x" type="number" step="0.1" value="2"></div>
+            <div><label>Tier 1 sat %</label><input name="tier1_pct" type="number" step="1" value="25"></div>
+            <div><label>Tier 2 (x)</label><input name="tier2_x" type="number" step="0.1" value="5"></div>
+            <div><label>Tier 2 sat %</label><input name="tier2_pct" type="number" step="1" value="25"></div>
+            <div><label>Tier 3 (x)</label><input name="tier3_x" type="number" step="0.1" value="10"></div>
+            <div><label>Tier 3 sat %</label><input name="tier3_pct" type="number" step="1" value="25"></div>
+            <div><label>Trailing stop %</label><input name="trailing_stop" type="number" step="1" value="30"></div>
+            <div><label>Stop loss %</label><input name="stop_loss" type="number" step="1" value="30"></div>
+
+            <div class="sec">Paper cuzdan</div>
+            <div><label>Baslangic ($)</label><input name="paper_start_usd" type="number" step="1" value="20"></div>
+            <div><label>Platform fee %</label><input name="fee_platform_pct" type="number" step="0.1" value="1"></div>
+            <div><label>Network fee SOL</label><input name="fee_network_sol" type="number" step="0.000001" value="0.000005"></div>
+            <div><label>Priority fee SOL</label><input name="fee_priority_sol" type="number" step="0.0001" value="0.001"></div>
           </div>
           <button class="primary" type="submit" style="width:100%;margin-top:12px">AYARLARI KAYDET</button>
         </form>
@@ -114,8 +158,9 @@
       <div class="body stats">
         <div>gorulen <b id="st-seen">0</b></div>
         <div>alinan <b id="st-bought">0</b></div>
-        <div>islem <b id="st-trades">0</b></div>
-        <div>toplam PnL <b id="st-pnl">0.0000 SOL</b></div>
+        <div>satis <b id="st-trades">0</b></div>
+        <div>basari <b id="st-win">0%</b></div>
+        <div>PnL <b id="st-pnl">0.0000 SOL</b></div>
       </div>
     </section>
 
@@ -141,8 +186,9 @@
       <h2>Acik Pozisyonlar <span class="count" id="pos-count">0</span></h2>
       <div class="scroll">
         <table>
-          <thead><tr><th>coin</th><th>giris</th><th>guncel</th><th>PnL %</th><th>yas</th><th></th></tr></thead>
-          <tbody id="positions"><tr><td colspan="6" class="empty">Acik pozisyon yok</td></tr></tbody>
+          <thead><tr><th>coin</th><th>giris</th><th>guncel</th><th>ATH</th><th>PnL %</th>
+            <th>kademe</th><th>trailing</th><th>kalan</th><th>yas</th><th></th></tr></thead>
+          <tbody id="positions"><tr><td colspan="10" class="empty">Acik pozisyon yok</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -151,8 +197,9 @@
       <h2>Islem Gecmisi <span class="count" id="trade-count">0</span></h2>
       <div class="scroll">
         <table>
-          <thead><tr><th>coin</th><th>giris</th><th>cikis</th><th>PnL %</th><th>PnL SOL</th><th>tarih</th></tr></thead>
-          <tbody id="trades"><tr><td colspan="6" class="empty">Henuz kapanmis islem yok</td></tr></tbody>
+          <thead><tr><th>coin</th><th>mod</th><th>kademe</th><th>sat %</th><th>giris</th><th>cikis</th>
+            <th>PnL %</th><th>PnL SOL</th><th>tarih</th></tr></thead>
+          <tbody id="trades"><tr><td colspan="9" class="empty">Henuz satis yok</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -161,25 +208,26 @@
 
 <script>
 const $ = (id) => document.getElementById(id);
-const state = { running:false, positions:new Map(), trades:[], feed:[], stats:{} };
+const app = { running:false, paper:true, canLive:false, solUsd:0,
+              positions:new Map(), trades:[], feed:[] };
 
 const fmtUsd = (v) => (v===null||v===undefined||isNaN(v)) ? "-" :
   (v >= 1 ? "$" + Number(v).toLocaleString(undefined,{maximumFractionDigits:0})
           : "$" + Number(v).toPrecision(4));
 const fmtPct = (v) => (v===null||v===undefined||isNaN(v)) ? "-" : Number(v).toFixed(1) + "%";
+const fmtSol = (v) => (Number(v||0) >= 0 ? "+" : "") + Number(v||0).toFixed(4);
 const fmtTime = (ts) => new Date((ts||Date.now()/1000)*1000).toLocaleTimeString("tr-TR");
 const fmtDate = (ts) => new Date((ts||0)*1000).toLocaleString("tr-TR");
 const short = (a) => a ? a.slice(0,4) + "…" + a.slice(-4) : "-";
 const age = (ts) => { const s = Math.max(0, Date.now()/1000 - (ts||0));
   return s < 60 ? Math.floor(s)+"s" : s < 3600 ? Math.floor(s/60)+"d" : Math.floor(s/3600)+"sa"; };
-const cls = (v) => v >= 0 ? "pos" : "neg";
+const cls = (v) => Number(v) >= 0 ? "pos" : "neg";
 
 /* ---------- rendering ---------- */
 function renderFeed(){
-  const rows = state.feed.slice(0,120);
-  $("feed-count").textContent = state.feed.length;
-  if(!rows.length) return;
-  $("feed").innerHTML = rows.map(c => `
+  $("feed-count").textContent = app.feed.length;
+  if(!app.feed.length) return;
+  $("feed").innerHTML = app.feed.slice(0,120).map(c => `
     <tr>
       <td class="muted">${fmtTime(c.time)}</td>
       <td title="${c.mint||""}">${(c.name||"?").slice(0,18)}</td>
@@ -193,31 +241,46 @@ function renderFeed(){
     </tr>`).join("");
 }
 
+function tierCells(p){
+  return [1,2,3].map(n => `<span class="tier ${p["tier"+n+"_sold"] ? "hit":""}">${p["tier"+n+"_sold"] ? "✓" : n}</span>`).join("");
+}
+
 function renderPositions(){
-  const rows = [...state.positions.values()].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
+  const rows = [...app.positions.values()].sort((a,b)=>(b.timestamp||0)-(a.timestamp||0));
   $("pos-count").textContent = rows.length;
-  $("positions").innerHTML = rows.length ? rows.map(p => `
-    <tr>
-      <td title="${p.mint}">${(p.name||p.mint||"?").slice(0,18)}</td>
+  $("positions").innerHTML = rows.length ? rows.map(p => {
+    const rem = p.remaining_percent !== undefined ? p.remaining_percent : (100 - (p.total_sold_percent||0));
+    const mult = p.entry_price > 0 ? (p.current_price/p.entry_price) : 0;
+    return `<tr>
+      <td title="${p.mint}">${(p.name||p.mint||"?").slice(0,16)}
+          ${p.is_paper ? '<span class="tag pap">P</span>' : ''}</td>
       <td>${fmtUsd(p.entry_price)}</td>
       <td>${fmtUsd(p.current_price)}</td>
-      <td class="${cls(p.pnl_percent||0)}">${fmtPct(p.pnl_percent)}</td>
+      <td class="muted">${fmtUsd(p.ath_price)}</td>
+      <td class="${cls(p.pnl_percent||0)}">${fmtPct(p.pnl_percent)} <span class="muted">${mult?mult.toFixed(2)+"x":""}</span></td>
+      <td>${tierCells(p)}</td>
+      <td class="${p.tier1_sold ? "" : "muted"}">${p.tier1_sold ? fmtUsd(p.trailing_stop_price) : "-"}</td>
+      <td><div class="bar" title="${rem.toFixed(0)}%"><i style="width:${Math.max(0,Math.min(100,rem))}%"></i></div></td>
       <td class="muted">${age(p.timestamp)}</td>
       <td><button class="sm danger" onclick="sellPosition(${p.id})">SAT</button></td>
-    </tr>`).join("") : `<tr><td colspan="6" class="empty">Acik pozisyon yok</td></tr>`;
+    </tr>`;
+  }).join("") : `<tr><td colspan="10" class="empty">Acik pozisyon yok</td></tr>`;
 }
 
 function renderTrades(){
-  $("trade-count").textContent = state.trades.length;
-  $("trades").innerHTML = state.trades.length ? state.trades.slice(0,100).map(t => `
+  $("trade-count").textContent = app.trades.length;
+  $("trades").innerHTML = app.trades.length ? app.trades.slice(0,100).map(t => `
     <tr>
-      <td title="${t.mint||""}">${(t.name||"?").slice(0,18)}</td>
+      <td title="${t.mint||""}">${(t.name||"?").slice(0,16)}</td>
+      <td><span class="tag ${t.is_paper ? "pap":"liv"}">${t.is_paper ? "PAPER":"LIVE"}</span></td>
+      <td class="muted">${t.tier||"-"}</td>
+      <td>${Number(t.sold_percent||100).toFixed(0)}%</td>
       <td>${fmtUsd(t.entry_price)}</td>
       <td>${fmtUsd(t.exit_price)}</td>
       <td class="${cls(t.pnl_percent||0)}">${fmtPct(t.pnl_percent)}</td>
-      <td class="${cls(t.pnl_sol||0)}">${Number(t.pnl_sol||0).toFixed(4)}</td>
+      <td class="${cls(t.pnl_sol||0)}">${fmtSol(t.pnl_sol)}</td>
       <td class="muted">${fmtDate(t.exit_time)}</td>
-    </tr>`).join("") : `<tr><td colspan="6" class="empty">Henuz kapanmis islem yok</td></tr>`;
+    </tr>`).join("") : `<tr><td colspan="9" class="empty">Henuz satis yok</td></tr>`;
 }
 
 function addLog(message, level){
@@ -228,21 +291,42 @@ function addLog(message, level){
   while($("logs").childElementCount > 200) $("logs").lastElementChild.remove();
 }
 
+function setMode(paper, canLive){
+  app.paper = !!paper;
+  if(canLive !== undefined) app.canLive = !!canLive;
+  $("modeTrack").className = "track" + (app.paper ? "" : " live");
+  $("modeLabel").textContent = app.paper ? "PAPER" : "LIVE";
+  $("modeLabel").style.color = app.paper ? "var(--amber)" : "#fca5a5";
+  // Gercek cuzdan paper modunda soluk gosterilir.
+  $("realChip").className = "chip" + (app.paper ? " dim" : "");
+  $("walletChip").className = "chip" + (app.paper ? " dim" : "");
+}
+
+function setPaperWallet(w){
+  if(!w) return;
+  $("paperBal").textContent = Number(w.balance_sol||0).toFixed(4);
+  $("paperUsd").textContent = "($" + (Number(w.balance_sol||0) * (app.solUsd||0)).toFixed(2) + ")";
+  const today = $("paperToday"), all = $("paperAll");
+  today.textContent = fmtSol(w.pnl_today_sol); today.className = cls(w.pnl_today_sol);
+  all.textContent = fmtSol(w.pnl_all_sol); all.className = cls(w.pnl_all_sol);
+}
+
 function setStatus(s){
   if(!s) return;
-  state.running = !!s.running;
+  app.running = !!s.running;
   const badge = $("status");
   badge.textContent = s.running ? "RUNNING" : "STOPPED";
   badge.className = "badge " + (s.running ? "on" : "off");
   $("toggle").textContent = s.running ? "BOTU DURDUR" : "BOTU BASLAT";
   $("toggle").className = s.running ? "danger" : "primary";
   if(s.wallet) $("wallet").textContent = short(s.wallet);
-  $("mode").style.display = s.paper ? "" : "none";
+  if(s.paper !== undefined) setMode(s.paper, s.can_go_live);
   if(s.coins_seen !== undefined) $("st-seen").textContent = s.coins_seen;
   if(s.coins_bought !== undefined) $("st-bought").textContent = s.coins_bought;
-  const dot = $("wsdot");
+  if(s.sol_usd) app.solUsd = s.sol_usd;
+  if(s.paper_wallet) setPaperWallet(s.paper_wallet);
   if(s.connected !== undefined){
-    dot.className = "dot " + (s.connected ? "ok" : "bad");
+    $("wsdot").className = "dot " + (s.connected ? "ok" : "bad");
     $("wstext").textContent = s.connected ? "helius bagli" : "helius kopuk";
   }
 }
@@ -250,9 +334,9 @@ function setStatus(s){
 function setStats(st){
   if(!st) return;
   $("st-trades").textContent = st.total_trades ?? 0;
-  const pnl = Number(st.total_pnl_sol||0);
-  const el = $("st-pnl");
-  el.textContent = pnl.toFixed(4) + " SOL";
+  $("st-win").textContent = Number(st.win_rate||0).toFixed(0) + "%";
+  const pnl = Number(st.total_pnl_sol||0), el = $("st-pnl");
+  el.textContent = fmtSol(pnl) + " SOL";
   el.className = cls(pnl);
 }
 
@@ -262,6 +346,7 @@ function fillSettings(cfg){
     const input = document.querySelector(`#settings [name="${key}"]`);
     if(input) input.value = val;
   }
+  if(cfg.paper_trading !== undefined) setMode(cfg.paper_trading);
 }
 
 /* ---------- actions ---------- */
@@ -271,9 +356,31 @@ async function api(path, opts){
 }
 
 $("toggle").onclick = async () => {
-  const path = state.running ? "/api/bot/stop" : "/api/bot/start";
-  await api(path, {method:"POST"});
+  await api(app.running ? "/api/bot/stop" : "/api/bot/start", {method:"POST"});
   setStatus(await api("/api/status"));
+};
+
+$("modeTrack").onclick = async () => {
+  const goLive = app.paper;
+  if(goLive){
+    if(!app.canLive){
+      alert("Canli mod icin .env icinde gecerli WALLET_PRIVATE_KEY gerekli.");
+      return;
+    }
+    if(!confirm("⚠️ This will use REAL funds. Are you sure?\n\nGercek cuzdanindan gercek para ile islem yapilacak.")) return;
+  }
+  const res = await api("/api/mode", {method:"POST", body:JSON.stringify({paper: !goLive})});
+  if(res.error){ alert(res.error); return; }
+  setMode(res.paper);
+  addLog("Mod: " + (res.paper ? "PAPER" : "LIVE"), res.paper ? "warn" : "error");
+};
+
+$("resetPaper").onclick = async () => {
+  const startUsd = parseFloat(document.querySelector('#settings [name="paper_start_usd"]').value) || 20;
+  if(!confirm("Paper cuzdan $" + startUsd + " ile sifirlanacak ve tum paper islem gecmisi silinecek. Onayliyor musun?")) return;
+  const w = await api("/api/paper/reset", {method:"POST", body:JSON.stringify({start_usd:startUsd})});
+  setPaperWallet(w);
+  refreshTables();
 };
 
 $("settings").onsubmit = async (e) => {
@@ -285,7 +392,7 @@ $("settings").onsubmit = async (e) => {
 };
 
 window.sellPosition = async (id) => {
-  if(!confirm("Pozisyon satilsin mi?")) return;
+  if(!confirm("Pozisyonun kalani satilsin mi?")) return;
   addLog("Manuel satis gonderildi #" + id, "warn");
   await api("/api/positions/" + id + "/sell", {method:"POST"});
   refreshTables();
@@ -295,9 +402,10 @@ async function refreshTables(){
   const [positions, trades, status] = await Promise.all([
     api("/api/positions"), api("/api/trades"), api("/api/status")
   ]);
-  state.positions = new Map((positions||[]).map(p => [p.id, p]));
-  state.trades = trades || [];
+  app.positions = new Map((positions||[]).map(p => [p.id, p]));
+  app.trades = trades || [];
   setStatus(status); setStats(status.stats);
+  $("balance").textContent = Number(status.sol_balance||0).toFixed(4);
   renderPositions(); renderTrades();
 }
 
@@ -307,7 +415,7 @@ function connect(){
   const proto = location.protocol === "https:" ? "wss" : "ws";
   ws = new WebSocket(`${proto}://${location.host}/ws`);
 
-  ws.onopen = () => { addLog("Panel websocket baglandi", "success"); };
+  ws.onopen = () => addLog("Panel websocket baglandi", "success");
   ws.onclose = () => {
     $("wsdot").className = "dot bad"; $("wstext").textContent = "panel kopuk";
     setTimeout(connect, 3000);
@@ -318,41 +426,45 @@ function connect(){
     const d = msg.data || {};
     switch(msg.type){
       case "init":
-        setStatus(d.status); fillSettings(d.settings);
-        state.positions = new Map((d.positions||[]).map(p=>[p.id,p]));
-        state.trades = d.trades || [];
+        app.solUsd = d.sol_usd || 0;
+        setStatus(d.status); fillSettings(d.settings); setStats(d.stats);
+        setPaperWallet(d.paper_wallet);
+        app.positions = new Map((d.positions||[]).map(p=>[p.id,p]));
+        app.trades = d.trades || [];
         $("balance").textContent = Number(d.sol_balance||0).toFixed(4);
         (d.recent||[]).forEach(m => {
-          if(m.type === "new_coin"){ state.feed.unshift(m.data); }
-          else if(m.type === "log"){ addLog(m.data.message, m.data.level); }
+          if(m.type === "new_coin") app.feed.unshift(m.data);
+          else if(m.type === "log") addLog(m.data.message, m.data.level);
         });
         renderFeed(); renderPositions(); renderTrades();
-        api("/api/status").then(s => setStats(s.stats));
         break;
       case "new_coin":
-        state.feed.unshift(d); state.feed = state.feed.slice(0,200); renderFeed();
+        app.feed.unshift(d); app.feed = app.feed.slice(0,200); renderFeed();
         break;
       case "position_update": {
-        const pos = state.positions.get(d.id);
-        if(pos){ pos.current_price = d.current_price; pos.pnl_percent = d.pnl_percent; renderPositions(); }
+        const pos = app.positions.get(d.id);
+        if(pos){ Object.assign(pos, d); renderPositions(); }
         else refreshTables();
         break;
       }
       case "position_opened":
-        if(d && d.id){ state.positions.set(d.id, d); renderPositions(); }
+        if(d && d.id){ app.positions.set(d.id, d); renderPositions(); }
         break;
       case "position_closed":
-        state.positions.delete(d.id); renderPositions();
+        app.positions.delete(d.id); renderPositions();
         break;
       case "trade_closed":
-        addLog(`${d.name} kapandi: ${fmtPct(d.pnl_percent)} (${Number(d.pnl_sol||0).toFixed(4)} SOL)`,
+        addLog(`${d.name} ${d.tier||""} %${Number(d.sold_percent||100).toFixed(0)} satildi: `
+               + `${fmtPct(d.pnl_percent)} (${fmtSol(d.pnl_sol)} SOL)`,
                (d.pnl_sol||0) >= 0 ? "success" : "error");
         refreshTables();
         break;
       case "balance_update":
         $("balance").textContent = Number(d.sol_balance||0).toFixed(4);
         if(d.wallet) $("wallet").textContent = short(d.wallet);
-        $("mode").style.display = d.paper ? "" : "none";
+        if(d.sol_usd) app.solUsd = d.sol_usd;
+        setMode(d.paper, d.can_go_live);
+        setPaperWallet(d.paper_wallet);
         break;
       case "status": setStatus(d); break;
       case "settings": fillSettings(d); break;
@@ -362,7 +474,7 @@ function connect(){
 }
 
 setInterval(() => { if(ws && ws.readyState === 1) ws.send("ping"); }, 20000);
-setInterval(renderPositions, 5000);   // keeps the age column ticking
+setInterval(renderPositions, 5000);   // yas kolonu canli kalsin
 connect();
 refreshTables();
 api("/api/settings").then(fillSettings);

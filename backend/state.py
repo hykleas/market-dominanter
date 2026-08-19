@@ -27,13 +27,29 @@ class Settings:
     max_dev_holdings: float = 5.0
     min_mcap: float = 5000.0
     max_mcap: float = 25000.0
-    take_profit: float = 100.0
     stop_loss: float = 30.0
-    # Not exposed in the panel, but kept configurable here.
     max_top10: float = 30.0
     min_volume_5m: float = 500.0
     analyze_delay: float = 10.0
     slippage_bps: int = 1500
+
+    # --- kademeli satis + trailing stop ---
+    tier1_x: float = 2.0
+    tier2_x: float = 5.0
+    tier3_x: float = 10.0
+    tier1_pct: float = 25.0
+    tier2_pct: float = 25.0
+    tier3_pct: float = 25.0
+    trailing_stop: float = 30.0
+
+    # --- paper trading ---
+    paper_trading: bool = True
+    paper_start_usd: float = 20.0
+    paper_balance_sol: float = 0.0     # 0 = henuz fonlanmadi
+    paper_funded_sol: float = 0.0      # reset aninda yatirilan miktar (PnL referansi)
+    fee_platform_pct: float = 1.0
+    fee_network_sol: float = 0.000005
+    fee_priority_sol: float = 0.001
 
     @classmethod
     def load(cls) -> "Settings":
@@ -53,13 +69,21 @@ class Settings:
             log.error("settings.json yazilamadi: %s", exc)
 
     def update(self, data: Dict[str, Any]) -> "Settings":
-        known = {f.name: f.type for f in fields(self)}
+        known = {f.name for f in fields(self)}
         for key, value in (data or {}).items():
             if key not in known:
                 continue
+            current = getattr(self, key)
             try:
-                current = getattr(self, key)
-                setattr(self, key, int(value) if isinstance(current, int) and not isinstance(current, bool) else float(value))
+                if isinstance(current, bool):
+                    if isinstance(value, str):
+                        setattr(self, key, value.strip().lower() in ("1", "true", "yes", "on"))
+                    else:
+                        setattr(self, key, bool(value))
+                elif isinstance(current, int):
+                    setattr(self, key, int(value))
+                else:
+                    setattr(self, key, float(value))
             except (TypeError, ValueError):
                 continue
         self.save()
