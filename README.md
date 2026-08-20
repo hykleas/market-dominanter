@@ -12,6 +12,7 @@ icinde olan coin, tanimi geregi ilgi gormemis coindi. Ayrintili teshis:
 
 | Katman | Dosya | Ne yapar |
 |---|---|---|
+| 0 - Aday kesfi | `backend/wallet_discovery.py` | Kazanan tokenlarin launch penceresinde erken alim yapan cuzdanlari bulur, kesisenleri aday listesine ekler |
 | 1 - Cuzdan skorlama | `backend/wallet_scorer.py` | Aday cuzdanlarin 30 gunluk gecmisini FIFO ile yeniden kurar, bot/farmer'lari eler, skorlar |
 | 2 - Canli kopyalama | `backend/copy_engine.py` | Takipteki cuzdanlari websocket'ten dinler, kapilardan gecen alimlari kopyalar, cikisi lidere devreder |
 | 3 - Curve momentum | `backend/pumpfun.py` | Bonding curve ilerlemesine gore pozisyon boyutunu buyutur ya da migration anini atlar |
@@ -24,11 +25,42 @@ cp .env.example .env          # HELIUS_API_KEY zorunlu
 python backend/main.py        # PORT env ile port secilir
 ```
 
-**1. Aday cuzdanlari topla.** `wallets_candidates.json` dosyasini doldur:
+**1. Aday cuzdanlari topla.** Iki yol var, ikisi ayni dosyaya yazar.
+
+*Otomatik:* kazanan tokenlarin erken alicilarindan aday uret.
+
+```bash
+python -m backend.wallet_discovery                      # varsayilan: 14 gun, >$200K
+python -m backend.wallet_discovery --days 3 --limit 30  # daha genis kapsam
+python -m backend.wallet_discovery --dry-run            # yazmadan raporla
+```
+
+*Elle:* `wallets_candidates.json` dosyasina ekle.
 
 ```json
 [{"address": "...", "source": "gmgn", "note": "neden ekledigin"}]
 ```
+
+Discovery elle eklenen kayitlarin `source`/`note` alanlarina dokunmaz.
+
+### Kesif nasil calisir
+
+1. Dexscreener'dan Solana token havuzu toplanir (arama + one cikan/boost listeleri)
+2. Yas ve mcap filtresi -> "kazananlar"
+3. Launch ani ZINCIRDEN dogrulanir (Metaplex metadata hesabi, tek RPC cagrisi).
+   Dexscreener'in `pairCreatedAt` degeri token'in degil O HAVUZUN yasidir; canli
+   olcumde BONK "10.9 gunluk" gorunuyordu (gercekte 1335).
+4. Launch + 3sn .. +30dk penceresinde alim yapanlar cikarilir. Ilk 3 saniye
+   MEV/sniper botlarina aittir, atilir.
+5. 2+ kazananda gorunen cuzdanlar aday olur
+
+**Kapsam uyarisi:** launch penceresine ulasmak icin araya giren tum islemlerin
+uzerinden gecmek gerekir (`getSignaturesForAddress` yalnizca yeniden eskiye
+gider). Canli olcumde $324K'lik bir token 400.000+ imzaya sahipti ve 150 sayfa
+yetmedi - bu tokenlar ATLANIR, cunku yarim bir pencere listeyi sessizce
+carpitir. Her calistirma kapsam ozeti basar. Kapsami artirmak icin
+`--max-pages` yukseltin ya da `--days` dusurun: genc tokenlarin penceresi cok
+daha ucuzdur.
 
 **2. Skorla.** Panelden `SKORLA`, ya da:
 
