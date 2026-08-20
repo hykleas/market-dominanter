@@ -97,6 +97,9 @@ class BacktestResult:
     select_start: float = 0.0
     split_ts: float = 0.0
     end_ts: float = 0.0
+    # Gecikme taramasi icin saklanir: veriyi bir kez cekip N kez simule etmek,
+    # her gecikme degeri icin bastan cekmekten dakikalarca hizli.
+    leader_trades: Dict[str, List[ClosedTrade]] = field(default_factory=dict)
 
     @property
     def total_pnl(self) -> float:
@@ -145,6 +148,13 @@ def simulate_wallet(wallet: str, leader_trades: Sequence[ClosedTrade],
             continue
         if trade.cost_sol < cfg.min_leader_buy_sol:
             skip("dust")
+            continue
+        # Gecikme, HIZLI islemde oldurucu yavas islemde onemsizdir (bkz.
+        # asagidaki gecikme modeli). min_copy_hold_sec, yalnizca liderin uzun
+        # tuttugu islemleri kopyalamayi saglar: gecikme vergisinin kucuk oldugu
+        # bolgede kalmak.
+        if trade.hold_seconds < cfg.min_copy_hold_sec:
+            skip("cok_hizli_islem")
             continue
 
         size = float(cfg.copy_size_sol)
@@ -299,6 +309,7 @@ async def backtest(addresses: Sequence[str], split_days: float = 15.0,
             result.skipped[reason] = result.skipped.get(reason, 0) + count
         result.trades.extend(sims)
         result.wallets_used.append(address)
+        result.leader_trades[address] = all_trades
         state.bus.log("%s -> test doneminde %d kopyalanabilir islem"
                       % (address[:10], len(sims)), "success" if sims else "warn")
 
@@ -400,6 +411,66 @@ def report(result: BacktestResult) -> None:
     print()
 
 
+def hold_filter_sweep(result: BacktestResult, cfg: state.Settings,
+                      values: Sequence[float], latency: float) -> None:
+    """Yalnizca liderin N saniyeden uzun tuttugu islemleri kopyalarsak ne olur?
+
+    Gecikme vergisi = getiri x gecikme/tutus. Tutus buyudukce vergi kuculur.
+    Bu tarama, "hizli islemleri hic kopyalama" kuralinin kara gecirip
+    gecirmedigini ayni veri uzerinde olcer.
+    """
+    if not result.leader_trades:
+        return
+    original = cfg.min_copy_hold_sec
+    print("\nTUTUS FILTRESI (yalnizca N sn'den uzun tutulan islemler kopyalanir)")
+    print("  %10s %8s %10s %9s %9s" % ("MIN TUTUS", "ISLEM", "PnL SOL", "GETIRI", "BASARI"))
+    try:
+        for threshold in values:
+            cfg.min_copy_hold_sec = threshold
+            trades: List[SimTrade] = []
+            for address, leader in result.leader_trades.items():
+                sims, _ = simulate_wallet(address, leader, cfg, result.split_ts,
+                                          result.end_ts, latency)
+                trades.extend(sims)
+            if not trades:
+                print("  %9.0fs %8d %10s %9s %9s" % (threshold, 0, "-", "-", "-"))
+                continue
+            pnl = sum(t.pnl_sol for t in trades)
+            cost = sum(t.cost_sol for t in trades)
+            pct = (pnl / cost * 100.0) if cost else 0.0
+            wins = sum(1 for t in trades if t.pnl_sol > 0)
+            mark = "  KAR" if pct > 0 else ""
+            print("  %9.0fs %8d %+10.4f %8.1f%% %8.0f%%%s"
+                  % (threshold, len(trades), pnl, pct, wins / len(trades) * 100.0, mark))
+    finally:
+        cfg.min_copy_hold_sec = original
+
+
+def latency_sweep(result: BacktestResult, cfg: state.Settings,
+                  values: Sequence[float]) -> None:
+    """Ayni veriyi farkli gecikme degerlerinde yeniden simule et.
+
+    Tek sorunun cevabi icin: gecikmeyi dusurursek kara geciyor muyuz? Cevap
+    "1 saniyede" ise ucretli RPC + sicak yol optimizasyonu ile ulasilabilir;
+    "0.2 saniyede" ise bu oyun oynanamaz.
+    """
+    if not result.leader_trades:
+        return
+    print("\nGECIKME DUYARLILIGI (ayni veri, farkli gecikme)")
+    print("  %8s %8s %10s %9s" % ("GECIKME", "ISLEM", "PnL SOL", "GETIRI"))
+    for latency in values:
+        trades: List[SimTrade] = []
+        for address, leader in result.leader_trades.items():
+            sims, _ = simulate_wallet(address, leader, cfg, result.split_ts,
+                                      result.end_ts, latency)
+            trades.extend(sims)
+        pnl = sum(t.pnl_sol for t in trades)
+        cost = sum(t.cost_sol for t in trades)
+        pct = (pnl / cost * 100.0) if cost else 0.0
+        mark = "  <-- basabas" if abs(pct) < 1.0 else ("  KAR" if pct > 0 else "")
+        print("  %7.1fs %8d %+10.4f %8.1f%%%s" % (latency, len(trades), pnl, pct, mark))
+
+
 def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     p = argparse.ArgumentParser(
         prog="python -m backend.backtester",
@@ -409,6 +480,10 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
                    help="wallets_candidates.json icindeki tum adresler")
     p.add_argument("--split-days", type=float, default=15.0,
                    help="son N gun TEST donemi, oncesi SECIM donemi")
+    p.add_argument("--hold-sweep", action="store_true",
+                   help="yalnizca N sn'den uzun tutulan islemleri kopyalamayi dene")
+    p.add_argument("--latency-sweep", action="store_true",
+                   help="ayni veriyi 0.1-15sn araligindaki gecikmelerde yeniden simule et")
     p.add_argument("--latency-sec", type=float, default=8.0,
                    help="sinyal gecikmesi (sn). Kacirilan pay = getiri x gecikme/tutus")
     p.add_argument("--lookback-days", type=float, default=None,
@@ -468,6 +543,12 @@ async def _main(argv: Optional[Sequence[str]] = None) -> int:
                                 skip_selection_filter=args.no_selection_filter,
                                 lookback_days=args.lookback_days)
         report(result)
+        if args.hold_sweep:
+            hold_filter_sweep(result, state.settings,
+                              (0, 60, 300, 600, 1200, 1800, 3600, 7200), args.latency_sec)
+        if args.latency_sweep:
+            latency_sweep(result, state.settings,
+                          (0.1, 0.25, 0.5, 1.0, 2.0, 3.0, 5.0, 8.0, 12.0, 15.0))
     finally:
         await rpc.close()
     return 0

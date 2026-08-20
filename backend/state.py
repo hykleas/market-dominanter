@@ -61,6 +61,10 @@ class Settings:
     # 3-8 saniye sonra gordugun icin saniyelik pozisyonlari kopyalayamazsin.
     scorer_min_hold_seconds: float = 300.0
     scorer_style_sample: int = 150
+    # Liderin bundan kisa tuttugu islemi KOPYALAMA. Gecikme vergisi
+    # getiri x gecikme/tutus oldugu icin kisa tutuslarda ezici, uzunlarda
+    # ihmal edilebilir. 0 = filtre kapali.
+    min_copy_hold_sec: float = 0.0
 
     # Esikler 19 Agustos 2026 canli olcumlerine gore kalibre edildi; bundler /
     # sniper / dev artik TOPLAM arza, top10 ise curve disi dolasima gore olculuyor.
