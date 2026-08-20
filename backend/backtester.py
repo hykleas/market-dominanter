@@ -22,8 +22,10 @@ NELERI MODELLEYEMIYOR (sonucu okurken bunlari bil)
 --------------------------------------------------
 * Likidite/curve kapilari: gecmisteki likiditeyi ucuza yeniden kuramayiz, o
   kapilar test edilmez. Gercekte bir kisim sinyal daha elenir.
-* Sinyal gecikmesi: gercekte lideri 3-8 saniye sonra gorursun ve fiyat kacmis
-  olur. `--latency-penalty` ile kotumser bir slipaj cezasi eklenir.
+* Sinyal gecikmesi MODELLENIYOR ama yaklasik: lider H saniyede G%% kazandiysa
+  fiyat kabaca G/H hizinda hareket eder; L saniye gec girdigimiz icin hareketin
+  L/H'lik kismini kaciririz (`--latency-sec`, varsayilan 8). Fiyatin dogrusal
+  hareket ettigini varsayar - gercekte sicramali hareket eder.
 * Basarisiz islemler, MEV, gercek zincir slipaji yok.
 
 Yani buradan cikan rakam GERCEGIN UST SINIRIDIR. Burada zarar ediyorsa canlida
@@ -122,7 +124,7 @@ class BacktestResult:
 # --------------------------------------------------------------------------- #
 def simulate_wallet(wallet: str, leader_trades: Sequence[ClosedTrade],
                     cfg: state.Settings, split_ts: float, end_ts: float,
-                    latency_penalty_pct: float = 2.0
+                    latency_sec: float = 8.0
                     ) -> Tuple[List[SimTrade], Dict[str, int]]:
     """Bir liderin kapanmis islemlerini kopyalamayi simule et.
 
@@ -150,10 +152,24 @@ def simulate_wallet(wallet: str, leader_trades: Sequence[ClosedTrade],
         fixed_fee = cfg.fee_network_sol + cfg.fee_priority_sol
         cost = size + fixed_fee
 
-        # Liderin getirisi bizim de getirimiz; uzerine gecikme cezasi ve
-        # cift yonlu slipaj biner.
-        gross_mult = 1.0 + trade.pnl_pct / 100.0
-        slip = (cfg.paper_slippage_pct / 100.0) * 2.0 + latency_penalty_pct / 100.0
+        # Liderin getirisi bizim de getirimiz - EKSI gecikmede kacirdigimiz pay.
+        #
+        # Gecikme cezasi SABIT olamaz. Lider H saniyede G%% kazandiysa fiyat
+        # kabaca G/H hizinda hareket ediyordur; biz L saniye gec girdigimiz icin
+        # o hareketin L/H'lik kismini kaciririz. Sabit bir yuzde, hizli trade'i
+        # affedip yavas trade'i haksiz cezalandiriyordu:
+        #
+        #   2 dakikada +%50  -> 8sn gecikme = hareketin %6.7'si = -%3.3 puan
+        #   39 dakikada +%20 -> 8sn gecikme = hareketin %0.3'u  = ihmal edilebilir
+        #
+        # Kopyalamanin neden yavas liderde ise yarayip hizlida yaramadigi tam
+        # olarak budur; model bunu artik yansitiyor.
+        hold = max(trade.hold_seconds, 1.0)
+        missed_fraction = min(latency_sec / hold, 1.0)
+        effective_pnl_pct = trade.pnl_pct * (1.0 - missed_fraction)
+
+        gross_mult = 1.0 + effective_pnl_pct / 100.0
+        slip = (cfg.paper_slippage_pct / 100.0) * 2.0
         gross_mult *= max(1.0 - slip, 0.0)
 
         exit_reason = "leader_exit"
@@ -191,7 +207,7 @@ def split_events(events: Sequence[WalletEvent], split_ts: float
 # Orkestrasyon
 # --------------------------------------------------------------------------- #
 async def backtest(addresses: Sequence[str], split_days: float = 15.0,
-                   latency_penalty_pct: float = 2.0,
+                   latency_sec: float = 8.0,
                    skip_selection_filter: bool = False,
                    lookback_days: Optional[float] = None) -> BacktestResult:
     cfg = state.settings
@@ -236,15 +252,11 @@ async def backtest(addresses: Sequence[str], split_days: float = 15.0,
                 continue
 
             # STIL TARAMASI: kopyalanamaz cuzdani tam gecmisini cekmeden ele.
-            style = await probe_trading_style(address, int(cfg.scorer_style_sample))
-            if style.trades and style.median_hold_seconds < cfg.scorer_min_hold_seconds:
-                reason = ("kopyalanamaz - medyan tutus %.0f sn < %.0f sn (%d islem ornegi)"
-                          % (style.median_hold_seconds, cfg.scorer_min_hold_seconds,
-                             style.trades))
-                result.wallets_rejected.append((address, reason))
-                state.bus.log("%s ELENDI: %s" % (address[:10], reason), "warn")
-                continue
-
+            # Stil probu burada ELEME icin KULLANILMIYOR. Iki kez olcum
+            # ile celisti (261dk->2dk, 60dk->75sn): kucuk ve yakin bir orneklem
+            # uzerinde FIFO eslestirmesi, test doneminin gercek tutusunu temsil
+            # etmiyor. Gercek tutus asagida test doneminden olculur; prob
+            # yalnizca ucuz bir on siralama araci olarak kalir.
             events, complete = await fetch_wallet_events(address, select_start,
                                                          int(cfg.scorer_max_signatures))
             if not complete:
@@ -282,7 +294,7 @@ async def backtest(addresses: Sequence[str], split_days: float = 15.0,
         # alinip test doneminde satilmis olabilir.
         all_trades = match_fifo(events)
         sims, skipped = simulate_wallet(address, all_trades, cfg, split_ts, now,
-                                        latency_penalty_pct)
+                                        latency_sec)
         for reason, count in skipped.items():
             result.skipped[reason] = result.skipped.get(reason, 0) + count
         result.trades.extend(sims)
@@ -397,8 +409,8 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
                    help="wallets_candidates.json icindeki tum adresler")
     p.add_argument("--split-days", type=float, default=15.0,
                    help="son N gun TEST donemi, oncesi SECIM donemi")
-    p.add_argument("--latency-penalty", type=float, default=2.0,
-                   help="sinyal gecikmesi icin %% slipaj cezasi")
+    p.add_argument("--latency-sec", type=float, default=8.0,
+                   help="sinyal gecikmesi (sn). Kacirilan pay = getiri x gecikme/tutus")
     p.add_argument("--lookback-days", type=float, default=None,
                    help="toplam pencere (varsayilan: scorer_lookback_days)")
     p.add_argument("--max-signatures", type=int, default=None,
@@ -452,7 +464,7 @@ async def _main(argv: Optional[Sequence[str]] = None) -> int:
                 return 1
             setattr(state.settings, key.strip(), type(before)(value))
             print("ayar: %s = %s (onceki %s)" % (key.strip(), value, before))
-        result = await backtest(addresses, args.split_days, args.latency_penalty,
+        result = await backtest(addresses, args.split_days, args.latency_sec,
                                 skip_selection_filter=args.no_selection_filter,
                                 lookback_days=args.lookback_days)
         report(result)

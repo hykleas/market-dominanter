@@ -115,12 +115,32 @@ def test_break_even_needs_a_real_gain():
     assert losing[0].pnl_sol < 0 < winning[0].pnl_sol
 
 
-def test_latency_penalty_reduces_pnl():
+def test_latency_reduces_pnl():
     base, _ = simulate_wallet(WALLET, [trade(SPLIT + DAY, 100.0)], cfg(), SPLIT, NOW,
-                              latency_penalty_pct=0.0)
+                              latency_sec=0.0)
     slow, _ = simulate_wallet(WALLET, [trade(SPLIT + DAY, 100.0)], cfg(), SPLIT, NOW,
-                              latency_penalty_pct=10.0)
+                              latency_sec=60.0)
     assert slow[0].pnl_sol < base[0].pnl_sol
+
+
+def test_latency_hurts_fast_trades_far_more_than_slow_ones():
+    """Ayni %50 getiri: 2 dakikada kazanilmissa 8 saniye gecikme hareketin
+    %6.7'sini yer; 8 saatte kazanilmissa neredeyse hicbir sey."""
+    fast, _ = simulate_wallet(WALLET, [trade(SPLIT + DAY, 50.0, hold=120)],
+                              cfg(), SPLIT, NOW, latency_sec=8.0)
+    slow, _ = simulate_wallet(WALLET, [trade(SPLIT + DAY, 50.0, hold=8 * 3600)],
+                              cfg(time_stop_minutes=10**9), SPLIT, NOW, latency_sec=8.0)
+    assert slow[0].pnl_sol > fast[0].pnl_sol
+    # Yavas islemde kayip ihmal edilebilir olmali
+    assert abs(slow[0].leader_pnl_pct - 50.0) < 1e-6
+
+
+def test_latency_cannot_exceed_the_whole_move():
+    """Tutus, gecikmeden kisaysa getirinin tamami kacar - eksiye donmez."""
+    sims, _ = simulate_wallet(WALLET, [trade(SPLIT + DAY, 500.0, hold=2)],
+                              cfg(), SPLIT, NOW, latency_sec=8.0)
+    # Hareketin tamami kacirildi: geriye yalnizca ucret+slipaj zarari kalir
+    assert sims[0].pnl_sol < 0
 
 
 # --------------------------------------------------------------------------- #

@@ -65,6 +65,16 @@ Kopyalamanin yapisal bir vergisi var: lider P fiyatindan alir, onun kendi alimi
 fiyati P+x yapar, sen P+x'ten alirsin. Sifir gecikmede bile ondan pahaliya
 girersin. Lider ne kadar hizli girip cikiyorsa vergi o kadar buyuk.
 
+Backtester bunu su sekilde modeller: lider H saniyede G%% kazandiysa fiyat
+kabaca G/H hizinda hareket ediyordur; L saniye gec girildigi icin hareketin
+L/H'lik kismi kacirilir.
+
+    2 dakikada +%50  ->  8sn gecikme = hareketin %6.7'si kayip
+    39 dakikada +%20 ->  8sn gecikme = hareketin %0.3'u  (ihmal edilebilir)
+
+Sabit bir yuzde ceza bunu yakalayamiyordu: hizli trade'i affedip yavas trade'i
+haksiz cezalandiriyordu.
+
 Olculen egri:
 
 | Medyan tutus | Islem | Basari | Sonuc |
