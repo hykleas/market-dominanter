@@ -138,6 +138,35 @@ ucreti PnL'e hic girmiyordu - 19 Agustos'ta zarar %31 dusuk raporlandi.
 %10, gidis-donus toplam maliyet %22 idi, yani basabas icin ~%25 fiyat artisi
 gerekiyordu.
 
+## Backtest - stratejiyi beklemeden olc
+
+Ileriye dogru test (paper modda 100 islem biriktirmek) 1-2 hafta surer. Ayni
+orneklem zaten zincirde duruyor: takip edilecek cuzdanlarin gecmis islemleri.
+
+```bash
+python -m backend.backtester --all-candidates --split-days 15
+python -m backend.backtester --wallet ADRES
+python -m backend.backtester --no-selection-filter    # ham potansiyel
+```
+
+**Walk-forward.** Cuzdanlari KAZANDIKLARI icin seciyoruz; ayni donemde
+kopyalamayi test etmek gelecegi bilerek bahis yapmaktir. O yuzden pencere
+ikiye bolunur - cuzdan eski yarinin metrikleriyle elenir, PnL yalnizca yeni
+yaridan sayilir:
+
+```
+30 gun once ────────── 15 gun once ────────── bugun
+  SECIM donemi            TEST donemi
+```
+
+**Modellenmeyenler** (sonucu okurken bilinmeli): gecmisteki likidite ucuza
+yeniden kurulamadigi icin likidite/curve kapilari test edilmez; basarisiz
+islemler, MEV ve gercek zincir slipaji yoktur. Sinyal gecikmesi
+`--latency-penalty` ile kotumser bir slipaj cezasi olarak eklenir.
+
+Yani cikan rakam **gercegin ust sinirIDIR**. Burada zarardaysa canlida kesin
+zarar eder; kardaysa canlida "belki" kar eder.
+
 ## Testler
 
 ```bash
