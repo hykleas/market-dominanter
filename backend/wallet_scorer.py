@@ -336,25 +336,81 @@ def score_population(metrics: List[WalletMetrics]) -> None:
 # --------------------------------------------------------------------------- #
 # Zincir erisimi
 # --------------------------------------------------------------------------- #
+@dataclass
+class ActivityProbe:
+    """Cuzdanin ne kadar yogun oldugu - SADECE imza sayarak olculur."""
+    signatures: int = 0
+    covered_window: bool = False   # pencerenin basina ulasildi mi
+    oldest_ts: float = 0.0
+    newest_ts: float = 0.0
+
+    @property
+    def tx_per_day(self) -> float:
+        span = max(self.newest_ts - self.oldest_ts, 1.0)
+        return self.signatures / (span / 86400.0)
+
+
+async def probe_activity(wallet: str, since: float, max_pages: int = 40) -> ActivityProbe:
+    """Islem YOGUNLUGUNU olc, islemleri COZMEDEN.
+
+    getSignaturesForAddress sayfa basina 1000 imza dondurur; getTransaction ise
+    imza basina bir cagridir. Yani yogunluk olcmek 1000 kat ucuz.
+
+    Bu on tarama olmadan sistem, gunde binlerce islem yapan bir botu tespit
+    etmek icin once o botun 3000 islemini tek tek cozuyordu: cuzdan basina 6-10
+    dakika, sonunda "bu bir bot" demek icin. Simdi ayni cevap birkac saniyede.
+    """
+    probe = ActivityProbe()
+    before: Optional[str] = None
+    for _ in range(max_pages):
+        page = await rpc.get_signatures(wallet, limit=SIG_PAGE, before=before)
+        if not page:
+            probe.covered_window = True
+            break
+        for sig in page:
+            block_time = float(sig.get("blockTime") or 0)
+            if block_time <= 0:
+                continue
+            probe.newest_ts = max(probe.newest_ts, block_time)
+            probe.oldest_ts = block_time if probe.oldest_ts == 0 else min(probe.oldest_ts, block_time)
+        probe.signatures += len(page)
+        oldest = float(page[-1].get("blockTime") or 0)
+        if oldest and oldest < since:
+            probe.covered_window = True
+            break
+        if len(page) < SIG_PAGE:
+            probe.covered_window = True
+            break
+        before = page[-1]["signature"]
+    return probe
+
+
 async def fetch_wallet_events(wallet: str, since: float, max_signatures: int
                               ) -> Tuple[List[WalletEvent], bool]:
-    """(olaylar, tam_mi) - cuzdanin `since` sonrasi alim/satim olaylari."""
+    """(olaylar, pencere_tam_kapsandi_mi).
+
+    Ikinci deger KRITIK: False ise imza butcesi `since`'e ulasmadan doldu, yani
+    olaylar pencerenin yalnizca EN YENI ucunu kapsar. Bunu yok saymak sessizce
+    yanlis cevap uretir - gunde binlerce islem yapan bir cuzdanda 3000 imza
+    sadece son gunu kapsar ve "15 gun once hic islem yapmamis" gibi gorunur.
+    """
     signatures: List[Dict[str, Any]] = []
     before: Optional[str] = None
-    complete = True
+    complete = False
     while len(signatures) < max_signatures:
         page = await rpc.get_signatures(wallet, limit=SIG_PAGE, before=before)
         if not page:
+            complete = True
             break
         signatures.extend(page)
         oldest = page[-1]
         before = oldest.get("signature")
         if float(oldest.get("blockTime") or 0) < since:
+            complete = True     # pencerenin basina varildi
             break
         if len(page) < SIG_PAGE:
+            complete = True     # cuzdanin tum gecmisi bu kadar
             break
-    else:
-        complete = False  # butce doldu, daha eski islemler var
 
     events: List[WalletEvent] = []
     for sig in signatures:
@@ -531,6 +587,19 @@ async def score_wallets(candidates: Optional[List[Dict[str, Any]]] = None,
         address = candidate["address"]
         state.bus.log("[%d/%d] %s taraniyor..." % (i, len(candidates), address[:10]), "info")
         try:
+            # UCUZ ON TARAMA: yogunluk, islemler cozulmeden olculur. Bot'u
+            # dakikalar yerine saniyeler icinde eler.
+            probe = await probe_activity(address, since)
+            if probe.tx_per_day > cfg.scorer_max_tx_per_day:
+                metrics = WalletMetrics(address=address)
+                metrics.rejected = ("bot yogunlugu (%.0f islem/gun > %.0f) - islemler "
+                                    "cozulmedi" % (probe.tx_per_day, cfg.scorer_max_tx_per_day))
+                results.append(metrics)
+                db.upsert_wallet(address, source=candidate.get("source"),
+                                 note=candidate.get("note"))
+                state.bus.log("%s ELENDI: %s" % (address[:10], metrics.rejected), "warn")
+                continue
+
             events, complete = await fetch_wallet_events(
                 address, since, int(cfg.scorer_max_signatures))
             delays = await entry_delays_for(events)
@@ -543,7 +612,11 @@ async def score_wallets(candidates: Optional[List[Dict[str, Any]]] = None,
             continue
 
         if not complete:
-            log.info("%s: imza butcesi doldu, metrikler kismi pencereye ait", address[:10])
+            # Sessizce gecilmemeli: kismi pencere, "eskiden hic islem yapmamis"
+            # gibi gorunur ve cuzdani haksiz yere eler.
+            metrics.rejected = ("imza butcesi (%d) pencereyi kapsamadi - metrikler "
+                                "sadece son gunlere ait" % int(cfg.scorer_max_signatures))
+            state.bus.log("%s ELENDI: %s" % (address[:10], metrics.rejected), "warn")
         payloads[address] = events
         results.append(metrics)
         db.upsert_wallet(address, source=candidate.get("source"), note=candidate.get("note"))

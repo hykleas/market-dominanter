@@ -54,7 +54,7 @@ import rpc  # noqa: E402
 import state  # noqa: E402
 from wallet_scorer import (  # noqa: E402
     ClosedTrade, WalletEvent, apply_filters, compute_metrics, fetch_wallet_events,
-    load_candidates, match_fifo,
+    load_candidates, match_fifo, probe_activity,
 )
 
 log = logging.getLogger("market-dominanter")
@@ -192,10 +192,14 @@ def split_events(events: Sequence[WalletEvent], split_ts: float
 # --------------------------------------------------------------------------- #
 async def backtest(addresses: Sequence[str], split_days: float = 15.0,
                    latency_penalty_pct: float = 2.0,
-                   skip_selection_filter: bool = False) -> BacktestResult:
+                   skip_selection_filter: bool = False,
+                   lookback_days: Optional[float] = None) -> BacktestResult:
     cfg = state.settings
     now = time.time()
-    select_start = now - float(cfg.scorer_lookback_days) * 86400.0
+    # Yogun cuzdanlarda 30 gun imza butcesine sigmiyor; pencereyi kisaltmak
+    # olcumu mumkun kilar (daha az veri, ama VERI).
+    lookback = float(lookback_days if lookback_days else cfg.scorer_lookback_days)
+    select_start = now - lookback * 86400.0
     split_ts = now - split_days * 86400.0
 
     result = BacktestResult(select_start=select_start, split_ts=split_ts, end_ts=now)
@@ -207,10 +211,37 @@ async def backtest(addresses: Sequence[str], split_days: float = 15.0,
                   % (len(addresses), _d(select_start), _d(split_ts), _d(split_ts)), "info")
 
     for i, address in enumerate(addresses, 1):
-        state.bus.log("[%d/%d] %s gecmisi cekiliyor..." % (i, len(addresses), address[:10]), "info")
+        state.bus.log("[%d/%d] %s inceleniyor..." % (i, len(addresses), address[:10]), "info")
         try:
-            events, _ = await fetch_wallet_events(address, select_start,
-                                                  int(cfg.scorer_max_signatures))
+            # Once ucuz on tarama: yogunluk ve pencerenin kapsanip kapsanmadigi.
+            # Bu adim olmadan bot'lar 10 dakika islem cozdurup sonunda yine
+            # eleniyordu - ve butce dolduysa "hic islem yapmamis" gibi
+            # gorunuyorlardi.
+            probe = await probe_activity(address, select_start)
+            if probe.tx_per_day > cfg.scorer_max_tx_per_day:
+                reason = "bot yogunlugu (%.0f islem/gun)" % probe.tx_per_day
+                result.wallets_rejected.append((address, reason))
+                state.bus.log("%s ELENDI: %s" % (address[:10], reason), "warn")
+                continue
+            # Prob zaten pencerede kac imza oldugunu biliyor. Butce yetmeyecekse
+            # bunu SIMDI bil: yoksa 3000 islemi tek tek cozup (5 dakika) sonunda
+            # ayni sonuca varilir.
+            if probe.signatures > int(cfg.scorer_max_signatures) or not probe.covered_window:
+                reason = ("imza butcesi yetmiyor - pencerede %d+ imza var, tavan %d "
+                          "(%.0f islem/gun)" % (probe.signatures,
+                                                int(cfg.scorer_max_signatures),
+                                                probe.tx_per_day))
+                result.wallets_rejected.append((address, reason))
+                state.bus.log("%s ELENDI: %s" % (address[:10], reason), "warn")
+                continue
+
+            events, complete = await fetch_wallet_events(address, select_start,
+                                                         int(cfg.scorer_max_signatures))
+            if not complete:
+                reason = "imza butcesi (%d) pencereyi kapsamadi" % int(cfg.scorer_max_signatures)
+                result.wallets_rejected.append((address, reason))
+                state.bus.log("%s ELENDI: %s" % (address[:10], reason), "warn")
+                continue
         except Exception as exc:
             log.error("Cuzdan cekilemedi (%s): %s", address, exc)
             result.wallets_rejected.append((address, "cekilemedi: %s" % type(exc).__name__))
@@ -339,6 +370,10 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
                    help="son N gun TEST donemi, oncesi SECIM donemi")
     p.add_argument("--latency-penalty", type=float, default=2.0,
                    help="sinyal gecikmesi icin %% slipaj cezasi")
+    p.add_argument("--lookback-days", type=float, default=None,
+                   help="toplam pencere (varsayilan: scorer_lookback_days)")
+    p.add_argument("--max-signatures", type=int, default=None,
+                   help="cuzdan basina imza tavani (varsayilan: scorer_max_signatures)")
     p.add_argument("--no-selection-filter", action="store_true",
                    help="secim donemi elemesini atla (ham potansiyeli gormek icin)")
     return p.parse_args(argv)
@@ -372,8 +407,11 @@ async def _main(argv: Optional[Sequence[str]] = None) -> int:
             return 1
 
     try:
+        if args.max_signatures:
+            state.settings.scorer_max_signatures = int(args.max_signatures)
         result = await backtest(addresses, args.split_days, args.latency_penalty,
-                                skip_selection_filter=args.no_selection_filter)
+                                skip_selection_filter=args.no_selection_filter,
+                                lookback_days=args.lookback_days)
         report(result)
     finally:
         await rpc.close()

@@ -52,6 +52,10 @@ class Settings:
     scorer_lookback_days: int = 30
     scorer_min_trades: int = 15         # bunun altinda ornekle yetersiz -> ELE
     scorer_max_signatures: int = 3000   # cuzdan basina imza tavani (RPS butcesi)
+    # Gunde bu kadar islemden fazlasini yapan cuzdan insan degildir. Olculen
+    # ornek: kesif 5.5 gunde 20.000 islem yapan bir cuzdan buldu - saatte 150,
+    # 24 saniyede bir, 7/24. On tarama bunu islemleri cozmeden yakalar.
+    scorer_max_tx_per_day: float = 500.0
 
     # Esikler 19 Agustos 2026 canli olcumlerine gore kalibre edildi; bundler /
     # sniper / dev artik TOPLAM arza, top10 ise curve disi dolasima gore olculuyor.
