@@ -356,6 +356,66 @@ def token_receiver(tx: Dict[str, Any], mint: str) -> Optional[str]:
     return signer if delta > 0 else None
 
 
+def token_seller(tx: Dict[str, Any], mint: str) -> Optional[str]:
+    """Islemi imzalayan, EGER o islemde bu mint'ten net token SATTIYSA.
+
+    `token_receiver`in aynasi. Alici tarafi launch penceresinde bot doludur -
+    olculdu: 11 adayin 10'u bot. Satici tarafi farkli bir kume: bir tokenin
+    yukselisinde satan, pozisyonu TUTMUS ve kari realize etmis demektir. Bot
+    erken alir ama tepede satmaz.
+    """
+    signer = tx_signer(tx)
+    if not signer or not tx:
+        return None
+    meta = tx.get("meta") or {}
+    if meta.get("err"):
+        return None
+
+    delta = 0.0
+    for entries, sign in ((meta.get("preTokenBalances") or [], -1.0),
+                          (meta.get("postTokenBalances") or [], 1.0)):
+        for bal in entries:
+            if bal.get("owner") != signer or bal.get("mint") != mint:
+                continue
+            try:
+                amount = float((bal.get("uiTokenAmount") or {}).get("uiAmount") or 0.0)
+            except (TypeError, ValueError):
+                continue
+            delta += sign * amount
+    return signer if delta < 0 else None
+
+
+async def profitable_sellers(winner: Winner, max_tx: int, max_pages: int = 2
+                             ) -> Tuple[Set[str], Optional[str]]:
+    """Tokenin EN SON islemlerinde satan cuzdanlar.
+
+    Kazanan bir tokende (mcap yuz binler, yasi birkac gun) su anda satan biri,
+    tanimi geregi dusukten alip yuksekte satiyor. Ve alici tarafinin aksine bu
+    veri BEDAVA: en yeni sayfa, geriye sayfalama olmadan tek RPC cagrisi.
+    """
+    target, kind = await launch_scan_target(winner.mint)
+    sigs = await rpc.get_signatures(target, limit=SIG_PAGE)
+    ok = [s for s in sigs if not s.get("err")]
+    if len(ok) < 5 and kind == "curve":
+        # Curve bos: token dogrudan DEX'te islem goruyor (bkz. early_buyers).
+        sigs = await rpc.get_signatures(winner.mint, limit=SIG_PAGE)
+        ok = [s for s in sigs if not s.get("err")]
+    if not ok:
+        return set(), "islem yok"
+
+    # En yeniden geriye: guncel satislar en taze sinyal.
+    ok.sort(key=lambda s: (s.get("slot") or 0), reverse=True)
+    sellers: Set[str] = set()
+    for sig in ok[:max_tx]:
+        tx = await rpc.get_transaction(sig["signature"])
+        if not tx:
+            continue
+        seller = token_seller(tx, winner.mint)
+        if seller:
+            sellers.add(seller)
+    return sellers, None
+
+
 def tx_signer(tx: Dict[str, Any]) -> Optional[str]:
     """Islemin ilk imzalayani = alici. Token hesabi/curve PDA'si degil."""
     keys = ((tx.get("transaction") or {}).get("message") or {}).get("accountKeys") or []
@@ -501,8 +561,8 @@ def load_existing() -> List[Dict[str, Any]]:
     return out
 
 
-def merge_candidates(existing: List[Dict[str, Any]], found: Dict[str, int]
-                     ) -> Tuple[List[Dict[str, Any]], int, int]:
+def merge_candidates(existing: List[Dict[str, Any]], found: Dict[str, int],
+                     label: str = "erken alici") -> Tuple[List[Dict[str, Any]], int, int]:
     """(birlesmis liste, eklenen, guncellenen). Saf fonksiyon.
 
     Elle eklenmis bir kaydin `source`/`note` alanlari EZILMEZ; sadece
@@ -514,7 +574,7 @@ def merge_candidates(existing: List[Dict[str, Any]], found: Dict[str, int]
     added = updated = 0
 
     for address, hits in sorted(found.items(), key=lambda kv: (-kv[1], kv[0])):
-        note = "%d kazanan tokenda erken alici" % hits
+        note = "%d kazanan tokenda %s" % (hits, label)
         current = by_address.get(address)
         if current is None:
             entry = {"address": address, "source": "auto-discovery", "note": note}
@@ -540,6 +600,7 @@ async def discover(days: float = 14.0, min_mcap: float = 200_000.0, limit: int =
                    min_hits: int = 2, max_tx: int = 200, max_pages: int = 150,
                    search_terms: Sequence[str] = DEFAULT_SEARCH_TERMS,
                    max_mcap: Optional[float] = DEFAULT_MAX_MCAP,
+                   mode: str = "buyers",
                    dry_run: bool = False) -> Dict[str, int]:
     state.bus.log("Aday kesfi basladi: son %.0f gun, mcap $%s - $%s"
                   % (days, format(int(min_mcap), ","),
@@ -564,11 +625,15 @@ async def discover(days: float = 14.0, min_mcap: float = 200_000.0, limit: int =
     per_token: Dict[str, int] = {}
     skipped_tokens: List[Tuple[str, str]] = []
     for i, winner in enumerate(winners, 1):
-        state.bus.log("[%d/%d] %s launch penceresi taraniyor..."
-                      % (i, len(winners), winner.symbol), "info")
+        state.bus.log("[%d/%d] %s %s taraniyor..."
+                      % (i, len(winners), winner.symbol,
+                         "saticilari" if mode == "sellers" else "launch penceresi"), "info")
         try:
-            buyers, skipped = await early_buyers(winner, window_min, skip_first_sec,
-                                                 max_tx, max_pages)
+            if mode == "sellers":
+                buyers, skipped = await profitable_sellers(winner, max_tx)
+            else:
+                buyers, skipped = await early_buyers(winner, window_min, skip_first_sec,
+                                                     max_tx, max_pages)
         except Exception as exc:
             log.error("%s taranamadi: %s", winner.symbol, exc)
             state.bus.log("%s taranamadi (%s)" % (winner.symbol, type(exc).__name__), "error")
@@ -579,7 +644,8 @@ async def discover(days: float = 14.0, min_mcap: float = 200_000.0, limit: int =
             continue
         per_token[winner.symbol] = len(buyers)
         hits.update(buyers)
-        state.bus.log("%s -> %d erken alici" % (winner.symbol, len(buyers)), "success")
+        state.bus.log("%s -> %d %s" % (winner.symbol, len(buyers),
+                      "satici" if mode == "sellers" else "erken alici"), "success")
 
     scanned = len(per_token)
     state.bus.log("Kapsam: %d/%d token tarandi, %d atlandi"
@@ -597,7 +663,8 @@ async def discover(days: float = 14.0, min_mcap: float = 200_000.0, limit: int =
 
     if found and not dry_run:
         existing = load_existing()
-        merged, added, updated = merge_candidates(existing, found)
+        merged, added, updated = merge_candidates(
+            existing, found, "satici" if mode == "sellers" else "erken alici")
         save_candidates(merged)
         state.bus.log("wallets_candidates.json: %d yeni, %d guncellendi, toplam %d"
                       % (added, updated, len(merged)), "success")
@@ -639,6 +706,10 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
                    help="launch'a ulasmak icin imza sayfasi butcesi (sayfa=1000)")
     p.add_argument("--search", action="append", default=None,
                    help="ek arama terimi (tekrarlanabilir)")
+    p.add_argument("--mode", choices=("buyers", "sellers"), default="buyers",
+                   help="buyers: launch penceresinde alanlar (bot dolu). "
+                        "sellers: yukselen tokende satanlar - pozisyonu tutup kari "
+                        "realize edenler")
     p.add_argument("--dry-run", action="store_true", help="dosyaya yazma, sadece raporla")
     return p.parse_args(argv)
 
@@ -667,7 +738,8 @@ async def _main(argv: Optional[Sequence[str]] = None) -> int:
             days=args.days, min_mcap=args.min_mcap, limit=args.limit,
             window_min=args.window_min, skip_first_sec=args.skip_first_sec,
             min_hits=args.min_hits, max_tx=args.max_tx, max_pages=args.max_pages,
-            search_terms=terms, max_mcap=args.max_mcap or None, dry_run=args.dry_run)
+            search_terms=terms, max_mcap=args.max_mcap or None,
+            mode=args.mode, dry_run=args.dry_run)
         _print_summary(found, args.dry_run)
     finally:
         await asyncio.gather(rpc.close(), analyzer.close(), return_exceptions=True)
