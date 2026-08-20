@@ -444,13 +444,25 @@ async def early_buyers(winner: Winner, window_min: float, skip_first_sec: float,
     target, kind = await launch_scan_target(winner.mint)
     sigs, launch_ts, reached, total_ok = await launch_window_signatures(
         target, window_min, skip_first_sec, max_pages)
+    window = sigs[:max_tx]
+
+    # Curve hesabinin VAR olmasi, islem gecmisini TASIDIGI anlamina gelmiyor.
+    # Olculen ornek (MRNA): curve'de 12 imza (4'u basarili, hepsi ayni saniyede
+    # = sadece olusturma islemi), mint tarafinda 1000 imza / 987 basarili. Bu
+    # tokenlar pump.fun mint'i ama bonding curve uzerinde islem gormemis;
+    # dogrudan PumpSwap/Raydium'da islem goruyorlar.
+    if kind == "curve" and not window:
+        sigs, launch_ts, reached, total_ok = await launch_window_signatures(
+            winner.mint, window_min, skip_first_sec, max_pages)
+        window = sigs[:max_tx]
+        kind = "mint (curve bostu)"
+
     if not reached:
         return set(), ("launch'a ulasilamadi (%s taramasi, %d sayfa yetmedi)"
                        % (kind, max_pages))
-    window = sigs[:max_tx]
     if not window:
         # Butce sorunu DEGIL: launch'a varildi ama pencerede sayilacak islem
-        # yok. Ya launch tamamen ilk 3 saniyeye sikismis (sniper yarisi) ya da
+        # yok. Ya launch tamamen atlanan ilk dilime sikismis (bot surusu) ya da
         # islemlerin neredeyse tamami basarisiz olmus.
         return set(), ("pencerede islem yok - %d basarili imza, hepsi ilk %.0fsn "
                        "icinde ya da pencere disinda (%s taramasi)"
