@@ -43,6 +43,41 @@ python -m backend.wallet_discovery --dry-run            # yazmadan raporla
 
 Discovery elle eklenen kayitlarin `source`/`note` alanlarina dokunmaz.
 
+### Iki kesif modu
+
+```bash
+python -m backend.wallet_discovery --mode buyers    # launch penceresinde alanlar
+python -m backend.wallet_discovery --mode sellers   # yukselen tokende satanlar
+```
+
+**`buyers` bot doludur.** Olculdu: 11 adayin 10'u bot (183-3785 islem/gun). Bu
+bir filtre sorunu degil kaynak sorunu - bir pump.fun launch'inin ilk
+saatlerinde alan zaten agirlikli olarak otomasyondur.
+
+**`sellers` kari realize edenleri arar.** Yukselmis bir tokende su anda satan
+biri, tanimi geregi dusukten alip yuksekte satiyor ve pozisyonu TUTMUS
+demektir. Bot erken alir ama tepede satmaz. Ayrica bu veri cok daha ucuz: en
+yeni sayfa yeterli, launch'a kadar geriye sayfalamak gerekmez.
+
+### Neden tutus suresi her seyi belirliyor
+
+Kopyalamanin yapisal bir vergisi var: lider P fiyatindan alir, onun kendi alimi
+fiyati P+x yapar, sen P+x'ten alirsin. Sifir gecikmede bile ondan pahaliya
+girersin. Lider ne kadar hizli girip cikiyorsa vergi o kadar buyuk.
+
+Olculen egri:
+
+| Medyan tutus | Islem | Basari | Sonuc |
+|---|---|---|---|
+| 0 dk | 190 | %7.4 | -%20.3 |
+| 15 dk | 433 | %14.3 | -%11.6 |
+| 39 dk | 4 | %100 | **+%25.9** |
+
+Son satir pozitif ama **4 islem hicbir sey kanitlamaz** - %100 basari orani
+gucun degil orneklem kucuklugunun gostergesi. Bu yuzden
+`scorer_min_hold_seconds` (varsayilan 300 sn) hem scorer'da hem backtester'da
+uygulanir: saniyelik pozisyon tutan bir cuzdan kopyalanamaz.
+
 ### Kesif nasil calisir
 
 1. Dexscreener'dan Solana token havuzu toplanir (arama + one cikan/boost listeleri)

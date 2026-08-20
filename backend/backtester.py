@@ -340,6 +340,25 @@ def report(result: BacktestResult) -> None:
           % (statistics.median(pnls), max(pnls), min(pnls)))
     print("MEDYAN TUTUS : %.0f dakika" % (statistics.median(holds) / 60.0))
 
+    # AYKIRI DEGER BAGIMLILIGI - en onemli satir.
+    # Toplam pozitif olabilir ama sonuc tek bir islemden geliyorsa bu bir avantaj
+    # degil, piyango biletidir: o islemi likidite kapisi, basarisiz bir tx ya da
+    # 8 saniyelik gecikme yuzunden kacirirsan geriye yalnizca zarar kalir.
+    ordered = sorted(trades, key=lambda t: t.pnl_sol, reverse=True)
+    print("\nAYKIRI DEGER BAGIMLILIGI")
+    for drop in (1, 3, 5):
+        if len(ordered) <= drop:
+            break
+        rest = ordered[drop:]
+        pnl = sum(t.pnl_sol for t in rest)
+        cost = sum(t.cost_sol for t in rest)
+        print("  en iyi %d islem cikarilirsa: %+.4f SOL  (%%%+.1f)"
+              % (drop, pnl, (pnl / cost * 100.0) if cost else 0.0))
+    top = ordered[0]
+    share = (top.pnl_sol / result.total_pnl * 100.0) if result.total_pnl else 0.0
+    print("  en iyi tek islem toplam karin %%%.0f'ini olusturuyor (%+.4f SOL, %%%+.0f)"
+          % (share, top.pnl_sol, top.pnl_pct))
+
     reasons: Dict[str, int] = {}
     for t in trades:
         reasons[t.exit_reason] = reasons.get(t.exit_reason, 0) + 1
