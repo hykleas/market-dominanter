@@ -9,3 +9,9 @@ venv/
 .DS_Store
 .idea/
 .vscode/
+tools/*.db
+tools/selftest_settings.json
+server.log
+server.err
+*.db-shm
+*.db-wal

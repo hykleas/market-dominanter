@@ -1,6 +1,7 @@
 """End-to-end self test: metrics -> rules -> paper buy -> monitor -> paper sell."""
 import asyncio, sys, os
-sys.path.insert(0, r"C:\Users\Lenovo\market-fucker\backend")
+from pathlib import Path
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
 os.environ["PAPER_TRADING"] = "1"
 
 import analyzer, database as db, rpc, state, trader

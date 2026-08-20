@@ -6,6 +6,7 @@ from __future__ import annotations
 import asyncio
 import json
 import logging
+import os
 import time
 from typing import Any, Dict, Optional, Tuple
 
@@ -21,7 +22,7 @@ log = logging.getLogger("market-fucker")
 CREATE_MARKERS = ("Program log: Instruction: Create", "Program log: Instruction: CreateV2",
                   "Program log: Create:")
 RECONNECT_DELAY = 5.0
-MAX_PARALLEL_ANALYSIS = int(__import__("os").getenv("MAX_PARALLEL_ANALYSIS", "2"))
+MAX_PARALLEL_ANALYSIS = int(os.getenv("MAX_PARALLEL_ANALYSIS", "2"))
 
 _seen: "dict[str, float]" = {}
 _analysis_sem = asyncio.Semaphore(MAX_PARALLEL_ANALYSIS)
@@ -106,7 +107,8 @@ async def _handle_new_mint(mint: str, creator: Optional[str],
                 row["result"] = "REJECTED"
                 row["reason"] = "bot durduruldu"
             else:
-                pos_id = await trader.buy(mint, metrics.name, price_hint=metrics.price_usd)
+                pos_id = await trader.buy(mint, metrics.name, price_hint=metrics.price_usd,
+                                          liquidity_hint=metrics.liquidity_usd)
                 if pos_id is None:
                     row["result"] = "REJECTED"
                     row["reason"] = "alim basarisiz"

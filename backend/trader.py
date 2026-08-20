@@ -17,7 +17,7 @@ import asyncio
 import base64
 import logging
 import os
-import time
+
 from typing import Any, Dict, Optional, Tuple
 
 import httpx
@@ -43,7 +43,6 @@ _client: Optional[httpx.AsyncClient] = None
 _keypair: Any = None
 _wallet_pubkey: Optional[str] = None
 _decimals_cache: Dict[str, int] = {}
-_sol_price: Dict[str, float] = {"price": 0.0, "ts": 0.0}
 _sell_locks: Dict[int, asyncio.Lock] = {}
 
 
@@ -204,14 +203,20 @@ async def token_decimals(mint: str) -> int:
 
 
 async def sol_price_usd() -> float:
-    now = time.time()
-    if _sol_price["price"] > 0 and now - _sol_price["ts"] < 60:
-        return _sol_price["price"]
-    price = await analyzer.current_price(state.WSOL_MINT)
-    if price:
-        _sol_price["price"] = price
-        _sol_price["ts"] = now
-    return _sol_price["price"]
+    return await analyzer.sol_price_usd()
+
+
+def _paper_slippage(amount_usd: float, liquidity_usd: Optional[float]) -> float:
+    """Fraction the simulated fill is worse than the quoted price.
+
+    A flat base rate plus a size-vs-liquidity impact term. Without this the paper
+    PnL sat on the optimistic side of reality on every single trade, which is the
+    one thing a simulator must not do.
+    """
+    slip = max(state.settings.paper_slippage_pct, 0.0) / 100.0
+    if liquidity_usd and liquidity_usd > 0 and amount_usd > 0:
+        slip += min(amount_usd / liquidity_usd, 0.25)
+    return min(slip, 0.5)
 
 
 async def raw_token_balance(mint: str) -> int:
@@ -304,7 +309,8 @@ async def execute_swap(quote: Dict[str, Any]) -> Optional[str]:
 # --------------------------------------------------------------------------- #
 # Buy
 # --------------------------------------------------------------------------- #
-async def buy(mint: str, name: str = "?", price_hint: Optional[float] = None) -> Optional[int]:
+async def buy(mint: str, name: str = "?", price_hint: Optional[float] = None,
+              liquidity_hint: Optional[float] = None) -> Optional[int]:
     """Open a position worth `settings.auto_buy_sol`. Returns the position id."""
     cfg = state.settings
     if db.has_open_position(mint):
@@ -318,11 +324,12 @@ async def buy(mint: str, name: str = "?", price_hint: Optional[float] = None) ->
         return None
 
     if is_paper():
-        return await _paper_buy(mint, name, amount_sol, entry_price)
+        return await _paper_buy(mint, name, amount_sol, entry_price, liquidity_hint)
     return await _live_buy(mint, name, amount_sol, entry_price)
 
 
-async def _paper_buy(mint: str, name: str, amount_sol: float, entry_price: float) -> Optional[int]:
+async def _paper_buy(mint: str, name: str, amount_sol: float, entry_price: float,
+                     liquidity_usd: Optional[float] = None) -> Optional[int]:
     cfg = state.settings
     await ensure_paper_funded()
     platform_fee, fixed_fee = _fees(amount_sol)
@@ -335,14 +342,17 @@ async def _paper_buy(mint: str, name: str, amount_sol: float, entry_price: float
     if sol_usd <= 0:
         state.bus.log("SOL fiyati alinamadi, paper alim atlandi", "error")
         return None
-    tokens = (amount_sol - platform_fee) * sol_usd / entry_price
+    # Fill worse than quote: base slippage + price impact of our own size.
+    slip = _paper_slippage(amount_sol * sol_usd, liquidity_usd)
+    fill_price = entry_price * (1.0 + slip)
+    tokens = (amount_sol - platform_fee) * sol_usd / fill_price
 
     _credit_paper(-total_cost)
-    pos_id = db.add_position(mint, name, entry_price, tokens, amount_sol, is_paper=True,
+    pos_id = db.add_position(mint, name, fill_price, tokens, amount_sol, is_paper=True,
                              fees_sol=platform_fee + fixed_fee, trailing_pct=cfg.trailing_stop)
     state.bot_state.coins_bought += 1
-    state.bus.log("[PAPER] ALINDI %s - %.4f SOL @ $%.8f (fee %.5f SOL)"
-                  % (name, amount_sol, entry_price, platform_fee + fixed_fee), "success")
+    state.bus.log("[PAPER] ALINDI %s - %.4f SOL @ $%.8f (slipaj %%%.2f, fee %.5f SOL)"
+                  % (name, amount_sol, fill_price, slip * 100.0, platform_fee + fixed_fee), "success")
     state.bus.publish("position_opened", position_payload(db.get_position(pos_id)))
     await push_balance()
     return pos_id
@@ -411,13 +421,16 @@ async def sell_portion(position_id: int, percent: float, tier: str = "manual") -
 
         if paper:
             sol_usd = await sol_price_usd()
-            gross = (tokens_to_sell * exit_price / sol_usd) if (sol_usd > 0 and exit_price > 0) else (
-                cost_portion * (exit_price / entry_price if entry_price > 0 else 1.0))
+            slip = _paper_slippage(0.0, None)
+            fill_price = exit_price * (1.0 - slip)
+            gross = (tokens_to_sell * fill_price / sol_usd) if (sol_usd > 0 and fill_price > 0) else (
+                cost_portion * (fill_price / entry_price if entry_price > 0 else 1.0))
             platform_fee, fixed_fee = _fees(gross)
             net = max(gross - platform_fee - fixed_fee, 0.0)
             fees_sol = platform_fee + fixed_fee
             _credit_paper(net)
             sol_received = net
+            exit_price = fill_price  # book the price actually filled at
             state.bus.log("[PAPER] SATIS %s %s %%%.0f -> %.5f SOL (fee %.5f)"
                           % (name, tier, percent, net, fees_sol), "info")
         else:

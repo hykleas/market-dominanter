@@ -2,10 +2,13 @@
 import asyncio, sys, time
 from pathlib import Path
 
-ROOT = Path(r"C:\Users\Lenovo\market-fucker")
+ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 from dotenv import load_dotenv
 load_dotenv(ROOT / ".env")
+
+import logging
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 import state
 state.reload_env()

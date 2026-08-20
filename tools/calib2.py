@@ -1,19 +1,22 @@
-"""Duzeltme sonrasi canli kalibrasyon: launch imzasi ile analiz."""
+﻿"""Duzeltme sonrasi canli kalibrasyon: launch imzasi ile analiz."""
 import asyncio, json, sys, time
 from pathlib import Path
 
-ROOT = Path(r"C:\Users\Lenovo\market-fucker")
+ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 from dotenv import load_dotenv
 load_dotenv(ROOT / ".env")
+
+import logging
+logging.getLogger("httpx").setLevel(logging.WARNING)
 
 import state
 state.reload_env()
 import analyzer, bot, rpc
 import websockets
 
-WANT = 4
-LISTEN_SEC = 60
+WANT = 6
+LISTEN_SEC = 90
 FOUND = []
 
 
@@ -53,7 +56,7 @@ async def main():
     async def run(item):
         mint, creator, sig, seen = item
         async with sem:
-            wait = max(0.0, 20.0 - (time.time() - seen))
+            wait = max(0.0, state.settings.analyze_delay - (time.time() - seen))
             t0 = time.time()
             res = await analyzer.analyze(mint, creator=creator, delay=wait, launch_signature=sig)
             return mint, res, time.time() - t0 - wait
@@ -72,9 +75,10 @@ async def main():
         f = lambda v, d=1: ("%.*f" % (d, v)) if isinstance(v, (int, float)) else "YOK"
         if m.bundler is None or m.sniper is None:
             missing += 1
-        print("%-14s %-8s %-8s %-7s %-7s %-8s %-7s %-5.1f %s" % (
-            (m.name or "?")[:14], f(m.market_cap, 0), f(m.volume_5m, 0), f(m.top10),
-            f(m.dev), f(m.bundler), f(m.sniper), secs, "PASS" if res.passed else "FAIL"))
+        print("%-14s %-8s %-8s %-7s %-7s %-8s %-7s %-13s %-5.1f %s" % (
+            (m.name or "?")[:14], f(m.market_cap, 0), f(m.curve_sol, 2), f(m.top10),
+            f(m.dev), f(m.bundler), f(m.sniper), m.source, secs,
+            "PASS" if res.passed else "FAIL"))
         if not res.passed:
             print("               %s" % res.reason_text)
         for r in res.reasons:

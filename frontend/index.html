@@ -129,8 +129,11 @@
             <div><label>Max dev %</label><input name="max_dev_holdings" type="number" step="0.1" value="5"></div>
             <div><label>Min mcap $</label><input name="min_mcap" type="number" step="100" value="5000"></div>
             <div><label>Max mcap $</label><input name="max_mcap" type="number" step="100" value="25000"></div>
-            <div><label>Max top10 %</label><input name="max_top10" type="number" step="1" value="30"></div>
-            <div><label>Min 5m hacim $</label><input name="min_volume_5m" type="number" step="50" value="500"></div>
+            <div><label>Max top10 %</label><input name="max_top10" type="number" step="1" value="25"></div>
+            <div><label>Min curve SOL</label><input name="min_curve_sol" type="number" step="0.1" value="2"></div>
+            <div><label>Max curve SOL</label><input name="max_curve_sol" type="number" step="0.5" value="30"></div>
+            <div><label>Min 5m hacim $</label><input name="min_volume_5m" type="number" step="50" value="0"></div>
+            <div><label>Analiz gecikmesi (sn)</label><input name="analyze_delay" type="number" step="5" value="90"></div>
 
             <div class="sec">Satis stratejisi</div>
             <div><label>Tier 1 (x)</label><input name="tier1_x" type="number" step="0.1" value="2"></div>
@@ -147,6 +150,7 @@
             <div><label>Platform fee %</label><input name="fee_platform_pct" type="number" step="0.1" value="1"></div>
             <div><label>Network fee SOL</label><input name="fee_network_sol" type="number" step="0.000001" value="0.000005"></div>
             <div><label>Priority fee SOL</label><input name="fee_priority_sol" type="number" step="0.0001" value="0.001"></div>
+            <div><label>Slipaj %</label><input name="paper_slippage_pct" type="number" step="0.1" value="1.5"></div>
           </div>
           <button class="primary" type="submit" style="width:100%;margin-top:12px">AYARLARI KAYDET</button>
         </form>
@@ -175,9 +179,9 @@
       <h2>Canli Coin Akisi <span class="count" id="feed-count">0</span></h2>
       <div class="scroll">
         <table>
-          <thead><tr><th>saat</th><th>isim</th><th>mcap</th><th>bundler</th><th>sniper</th>
+          <thead><tr><th>saat</th><th>isim</th><th>mcap</th><th>curve SOL</th><th>bundler</th><th>sniper</th>
             <th>dev</th><th>top10</th><th>sonuc</th></tr></thead>
-          <tbody id="feed"><tr><td colspan="8" class="empty">Bot baslatildiginda yeni coinler burada gorunur</td></tr></tbody>
+          <tbody id="feed"><tr><td colspan="9" class="empty">Bot baslatildiginda yeni coinler burada gorunur</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -232,6 +236,7 @@ function renderFeed(){
       <td class="muted">${fmtTime(c.time)}</td>
       <td title="${c.mint||""}">${(c.name||"?").slice(0,18)}</td>
       <td>${fmtUsd(c.mcap)}</td>
+      <td>${c.curve_sol==null?"-":c.curve_sol.toFixed(2)}</td>
       <td>${fmtPct(c.bundler)}</td>
       <td>${fmtPct(c.sniper)}</td>
       <td>${fmtPct(c.dev)}</td>

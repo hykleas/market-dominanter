@@ -2,7 +2,7 @@
 import asyncio, os, sys
 from pathlib import Path
 
-sys.path.insert(0, r"C:\Users\Lenovo\market-fucker\backend")
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "backend"))
 HERE = Path(__file__).parent
 
 import state

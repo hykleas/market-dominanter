@@ -97,14 +97,22 @@ Pozisyon tablosunda giris, guncel fiyat, ATH, PnL% (ve carpan), tamamlanan kadem
 
 Hepsi gecmek zorunda; **veri bulunamayan her metrik FAIL sayilir**:
 
-- `bundler% < max_bundler`
-- `sniper% < max_sniper`
-- `dev% < max_dev_holdings`
-- `top10% < max_top10` (varsayilan 30)
+- `bundler% < max_bundler` (toplam arza gore, varsayilan 5)
+- `sniper% < max_sniper` (toplam arza gore, varsayilan 10)
+- `dev% < max_dev_holdings` (toplam arza gore, varsayilan 5)
+- `top10% < max_top10` (curve disi dolasima gore, varsayilan 65)
+- launch penceresi `MAX_EARLY_TX`'i asmamis olmali (asarsa olculen sniper orani
+  alt sinirdir, o yuzden coin elenir)
 - LP burn edilmis / kilitli
 - `min_mcap <= mcap <= max_mcap`
-- `5m hacim > min_volume_5m` (varsayilan 500)
+- `min_curve_sol <= bonding curve'e giren SOL <= max_curve_sol` (varsayilan 2-30 SOL)
+- `5m hacim > min_volume_5m` — sadece Dexscreener coini indeksledigi zaman uygulanir
 - freeze authority kapali (ek guvenlik kontrolu)
+
+Yuzdelerin tabani onemli: `bundler`, `sniper` ve `dev` **toplam arza** gore olculur
+(ekosistemdeki tarayicilarin kullandigi taban), `top10` ise bonding curve disindaki
+dolasima gore. Ilk uc metrik dolasima gore olculdugunde siradan bir launch'ta bile
+%80-100 cikiyordu ve her coin eleniyordu.
 
 ### Veri kaynaklari hakkinda onemli not
 
@@ -115,13 +123,28 @@ alanlarini dondurmez — sadece fiyat, mcap/fdv, hacim ve likidite verir. Bu yuz
 | Metrik | Nasil hesaplanir |
 |---|---|
 | top10% | `getTokenLargestAccounts` + sahiplerin program hesabi mi (bonding curve / AMM vault) diye elenmesi, kalan dolasimdaki arza oran |
-| dev% | Launch isleminin fee payer'inin (kurucu cuzdan) bakiyesi / dolasimdaki arz |
-| bundler% | Launch **slotu icinde** alinan token miktari / dolasimdaki arz |
-| sniper% | Launch'tan sonraki 15sn icinde alinan token miktari / dolasimdaki arz |
+| dev% | Launch isleminin fee payer'inin (kurucu cuzdan) bakiyesi / **toplam arz** |
+| bundler% | Launch **slotu icinde** alinan token miktari / **toplam arz** (bonding curve'un kendi hesabi haric) |
+| sniper% | Launch'tan sonraki 15sn icinde alinan token miktari / **toplam arz** |
+| fiyat / mcap / likidite | Once pump.fun bonding curve (`pumpfun.py`), Dexscreener indeksledikten sonra onun verisi |
+| curve SOL | Bonding curve'un `real_sol_reserves` degeri = launch'tan beri icine giren gercek SOL |
 | LP burn | pump.fun / pumpswap / moonshot gibi program sahipli likiditede `true`, dogrulanamayan durumda `None` → FAIL |
 
-`bundler%` / `sniper%` sadece launch islemine kadar geri sayfalanabildiginde hesaplanir;
-launch penceresinde 40'tan fazla islem varsa metrik "dogrulanamadi" sayilir ve coin elenir.
+`bundler%` / `sniper%` launch imzasina kadar geri sayfalanabildiginde hesaplanir.
+Sayfalama 1000'lik sayfalarla en fazla 15 sayfa geri gider (`SIG_PAGE_SIZE`,
+`SIG_PAGE_LIMIT`); yogun bir mint saniyeler icinde binlerce *basarisiz* snipe imzasi
+biriktirdigi icin 100'luk sayfalar launch'a hic ulasamiyordu.
+
+Launch penceresinde `MAX_EARLY_TX` (150) islemden fazlasi varsa metrik "veri yok"
+sayilmaz: butcenin yettigi kadari hesaplanir, sonuc alt sinir olarak isaretlenir ve
+coin "launch penceresi asiri yogun" gerekcesiyle elenir.
+
+### Bonding curve neden birincil kaynak
+
+Dexscreener yeni bir mint'i 30-90 saniyede indeksliyor; bot ise 30 saniyelik coinlere
+bakiyor. O yuzden `pumpfun.py` bonding curve hesabini dogrudan okuyup fiyat, market cap,
+likidite ve curve'e giren SOL'u ilk slottan itibaren veriyor. Dexscreener yalnizca
+kendisine ozel alanlari (5m hacim, havuz likiditesi) dolduruyor.
 
 **HELIUS_API_KEY olmadan calismaz:** anahtar yoksa RPC `api.mainnet-beta.solana.com`'a duser,
 o da `getTokenLargestAccounts` gibi cagrilari reddeder → `dev` ve `top10` verisi bos kalir →
@@ -131,8 +154,22 @@ Bunlar heuristiktir, ticari holder API'lerinin sonuclariyla birebir ayni cikmaya
 Odemeli bir holder API'n varsa `analyzer.collect_metrics` icine tek noktadan baglanabilir
 (Dexscreener yanitinda `bundlerPercent` vb. alanlar varsa zaten oncelikli kullanilir).
 
-Analizde coin basina ~40 RPC cagrisi yapilir. Helius ucretsiz planinda yogun saatlerde
-rate limit yiyebilirsin; `analyzer.MAX_EARLY_TX` degerini dusurerek azaltabilirsin.
+Analizde coin basina ~30-180 RPC cagrisi yapilir (cogu launch penceresindeki
+`getTransaction`). `rpc.py` icindeki global pacer (`RPC_RPS`, varsayilan 9/sn) ve
+`MAX_PARALLEL_ANALYSIS` (varsayilan 2) bunu Helius ucretsiz planinin sinirinda tutar.
+Hala 429 goruyorsan once `RPC_RPS`'i, sonra `analyzer.MAX_EARLY_TX`'i dusur.
+
+## Test
+
+Ag ve Helius anahtari gerektirmeyen offline test:
+
+```powershell
+python tools\offline_test.py
+```
+
+Bonding curve cozumlemesi, launch penceresi bolme, kural motoru ve paper slipaj
+modelini sahte RPC cevaplariyla dogrular. Canli testler icin `tools/` altindaki
+`calib2.py` / `livecheck.py` / `diag.py` kullanilir (bunlar `.env` ister).
 
 ## Panel
 

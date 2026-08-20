@@ -33,6 +33,12 @@ logging.basicConfig(
 )
 log = logging.getLogger("market-fucker")
 
+# httpx her istegi INFO seviyesinde, TAM URL ile logluyor - RPC adresinde Helius
+# anahtari var, yani anahtar duz metin olarak loga/konsola dusuyordu.
+logging.getLogger("httpx").setLevel(logging.WARNING)
+logging.getLogger("httpcore").setLevel(logging.WARNING)
+logging.getLogger("websockets").setLevel(logging.WARNING)
+
 FRONTEND = ROOT / "frontend" / "index.html"
 _background: "list[asyncio.Task]" = []
 

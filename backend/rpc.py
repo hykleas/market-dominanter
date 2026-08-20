@@ -61,7 +61,7 @@ async def close() -> None:
     _client = None
 
 
-async def call(method: str, params: List[Any], retries: int = 2) -> Any:
+async def call(method: str, params: Any, retries: int = 2) -> Any:
     """Returns the `result` field, or None on any failure (never raises)."""
     payload = {"jsonrpc": "2.0", "id": next(_ids), "method": method, "params": params}
     for attempt in range(retries + 1):
@@ -120,6 +120,15 @@ async def get_multiple_accounts_parsed(pubkeys: List[str]) -> List[Optional[Dict
     return []
 
 
+async def get_account_raw(pubkey: str) -> Optional[Dict[str, Any]]:
+    """Raw (base64) account info - needed for accounts with no jsonParsed decoder,
+    e.g. the pump.fun bonding curve."""
+    res = await call("getAccountInfo", [pubkey, {"encoding": "base64", "commitment": "confirmed"}])
+    if isinstance(res, dict):
+        return res.get("value")
+    return None
+
+
 async def get_account_parsed(pubkey: str) -> Optional[Dict[str, Any]]:
     res = await call("getAccountInfo", [pubkey, {"encoding": "jsonParsed", "commitment": "confirmed"}])
     if isinstance(res, dict):
@@ -143,9 +152,12 @@ async def get_token_balance_of_owner(owner: str, mint: str) -> float:
     return total
 
 
-async def get_signatures(address: str, limit: int = 100, before: Optional[str] = None,
+SIG_MAX_LIMIT = 1000  # RPC hard cap for getSignaturesForAddress
+
+
+async def get_signatures(address: str, limit: int = SIG_MAX_LIMIT, before: Optional[str] = None,
                          until: Optional[str] = None) -> List[Dict[str, Any]]:
-    opts: Dict[str, Any] = {"limit": limit}
+    opts: Dict[str, Any] = {"limit": max(1, min(int(limit), SIG_MAX_LIMIT))}
     if before:
         opts["before"] = before
     if until:
@@ -161,6 +173,19 @@ async def get_transaction(signature: str) -> Optional[Dict[str, Any]]:
                      "commitment": "confirmed"}],
     )
     return res if isinstance(res, dict) else None
+
+
+async def get_asset_metadata(mint: str) -> Optional[Dict[str, Any]]:
+    """{name, symbol} via the Helius DAS API. None on a plain RPC (method absent)."""
+    res = await call("getAsset", {"id": mint}, retries=0)
+    if not isinstance(res, dict):
+        return None
+    content = res.get("content") or {}
+    meta = content.get("metadata") or {}
+    name = meta.get("name") or (res.get("token_info") or {}).get("symbol")
+    if not name and not meta.get("symbol"):
+        return None
+    return {"name": name, "symbol": meta.get("symbol")}
 
 
 async def get_latest_blockhash() -> Optional[str]:

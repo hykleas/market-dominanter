@@ -2,14 +2,17 @@
 import asyncio, sys, traceback
 from pathlib import Path
 
-ROOT = Path(r"C:\Users\Lenovo\market-fucker")
+ROOT = Path(__file__).resolve().parent.parent
 sys.path.insert(0, str(ROOT / "backend"))
 from dotenv import load_dotenv
 load_dotenv(ROOT / ".env")
 
+import logging
+logging.getLogger("httpx").setLevel(logging.WARNING)
+
 import state
 state.reload_env()
-import analyzer, rpc
+import analyzer, pumpfun, rpc
 
 MINTS = {
     "The Inventor (sakin)": "8gFAdbKMgDAktorfavwVhjQDQHE5YjPoKdsCQP7331Ce",
@@ -37,10 +40,16 @@ async def main():
                 tx = await rpc.get_transaction(launch["signature"])
                 print("  ilk tx cekilebildi:", bool(tx),
                       "| postTokenBalances:", len(((tx or {}).get("meta") or {}).get("postTokenBalances") or []))
-            b, s, lt = await analyzer._early_buyers(mint)
-            print("  _early_buyers -> bundled=%s sniped=%s" % (b, s))
-            circ, holders = await analyzer._real_holders(mint)
-            print("  _real_holders -> circulating=%s holders=%d" % (circ, len(holders)))
+            b, sn, lt, trunc = await analyzer._early_buyers(mint)
+            print("  _early_buyers -> bundled=%s sniped=%s truncated=%s" % (b, sn, trunc))
+            total, circ, holders = await analyzer._real_holders(mint)
+            print("  _real_holders -> total=%s circulating=%s holders=%d" % (total, circ, len(holders)))
+            curve = await pumpfun.read_curve(mint)
+            if curve:
+                print("  bonding curve -> %.4f SOL icerde, fiyat %.10f SOL, complete=%s"
+                      % (curve.sol_in_curve, curve.price_sol or 0.0, curve.complete))
+            else:
+                print("  bonding curve -> okunamadi (migrate olmus olabilir)")
         except Exception:
             traceback.print_exc()
     await rpc.close()

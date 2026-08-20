@@ -21,6 +21,8 @@ SETTINGS_FILE = ROOT / "settings.json"
 
 @dataclass
 class Settings:
+    # Esikler 19 Agustos 2026 canli olcumlerine gore kalibre edildi; bundler /
+    # sniper / dev artik TOPLAM arza, top10 ise curve disi dolasima gore olculuyor.
     auto_buy_sol: float = 0.01
     max_bundler: float = 5.0
     max_sniper: float = 10.0
@@ -28,9 +30,18 @@ class Settings:
     min_mcap: float = 5000.0
     max_mcap: float = 25000.0
     stop_loss: float = 30.0
-    max_top10: float = 30.0
-    min_volume_5m: float = 500.0
-    analyze_delay: float = 10.0
+    # top10 toplam arza gore olculuyor (curve disi float'a gore olculdugunde
+    # 30 saniyelik bir coinde tek alici oldugu icin her zaman %100 cikiyordu).
+    max_top10: float = 25.0
+    # Dexscreener 20 saniyelik coinde 5m hacmi bos donuyor. Talep olcusu artik
+    # bonding curve'e giren gercek SOL; 5m hacim sadece veri varsa uygulaniyor.
+    min_volume_5m: float = 0.0
+    min_curve_sol: float = 2.0
+    max_curve_sol: float = 30.0
+    # 30sn'de coinlerin neredeyse tamami launch tabaninda duruyor (canli olcum:
+    # mcap $2281 = curve tabani, curve 0.00 SOL). 90sn'de ayrisiyorlar, yani filtre
+    # ancak orada gercek sinyalle calisiyor. Sniper penceresi (15sn) de kapanmis olur.
+    analyze_delay: float = 90.0
     slippage_bps: int = 1500
 
     # --- kademeli satis + trailing stop ---
@@ -48,6 +59,7 @@ class Settings:
     paper_balance_sol: float = 0.0     # 0 = henuz fonlanmadi
     paper_funded_sol: float = 0.0      # reset aninda yatirilan miktar (PnL referansi)
     fee_platform_pct: float = 1.0
+    paper_slippage_pct: float = 1.5    # taban slipaj; likidite biliniyorsa uzerine etki eklenir
     fee_network_sol: float = 0.000005
     fee_priority_sol: float = 0.001
 
