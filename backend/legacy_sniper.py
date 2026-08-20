@@ -24,6 +24,7 @@ from typing import Any, Dict, Optional, Tuple
 import websockets
 
 import analyzer
+import database as db
 import rpc
 import state
 import trader
@@ -110,6 +111,7 @@ async def _handle_new_mint(mint: str, creator: Optional[str],
             row["time"] = time.time()
             row["result"] = "BOUGHT" if result.passed else "REJECTED"
             row["reason"] = result.reason_text
+            pos_id_for_log = None
             state.bot_state.coins_seen += 1
 
             if not result.passed:
@@ -125,9 +127,20 @@ async def _handle_new_mint(mint: str, creator: Optional[str],
             else:
                 pos_id = await trader.buy(mint, metrics.name, price_hint=metrics.price_usd,
                                           liquidity_hint=metrics.liquidity_usd)
+                pos_id_for_log = pos_id
                 if pos_id is None:
                     row["result"] = "REJECTED"
                     row["reason"] = "alim basarisiz"
+            # KARARI KAYDET - RED DAHIL. 19 Agustos calistirmasinda gerekceler
+            # yalnizca panele basiliyordu; hangi kuralin kac coini eledigi hic
+            # olculemedi ve filtrenin ters secim yaptigi aylar sonra cikarimla
+            # anlasildi. Artik her karar sorgulanabilir.
+            try:
+                db.add_coin_decision(row, row["result"], result.codes,
+                                     row.get("reason") or "", position_id=pos_id_for_log)
+            except Exception as exc:
+                log.debug("Coin karari kaydedilemedi: %s", exc)
+
             state.bus.publish("new_coin", row)
             state.bus.publish("status", status())
         except Exception as exc:

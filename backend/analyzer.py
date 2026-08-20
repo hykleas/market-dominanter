@@ -113,6 +113,10 @@ class Metrics:
 class AnalysisResult:
     passed: bool
     reasons: List[str] = field(default_factory=list)
+    # Gerekce metinleri deger icerir ("mcap $47000 > $25000"), bu yuzden
+    # gruplanamaz. `codes` her kuralin sabit kimligini tasir ve olcumu
+    # mumkun kilar.
+    codes: List[str] = field(default_factory=list)
     metrics: Optional[Metrics] = None
 
     @property
@@ -586,55 +590,62 @@ async def collect_metrics(mint: str, creator: Optional[str] = None, deep: bool =
 # --------------------------------------------------------------------------- #
 def evaluate(metrics: Metrics, cfg: state.Settings) -> AnalysisResult:
     reasons: List[str] = []
+    codes: List[str] = []
 
-    def need(value: Optional[float], label: str) -> bool:
+    def add(code: str, text: str) -> None:
+        codes.append(code)
+        reasons.append(text)
+
+    def need(value: Optional[float], label: str, code: str) -> bool:
         if value is None:
-            reasons.append(label + " verisi yok")
+            add("no_" + code, label + " verisi yok")
             return False
         return True
 
-    if need(metrics.bundler, "bundler") and metrics.bundler >= cfg.max_bundler:
-        reasons.append("bundler %.1f%% >= %.1f%%" % (metrics.bundler, cfg.max_bundler))
-    if need(metrics.sniper, "sniper") and metrics.sniper >= cfg.max_sniper:
-        reasons.append("sniper %.1f%% >= %.1f%%" % (metrics.sniper, cfg.max_sniper))
-    if metrics.sniper_truncated:
-        # More buys in the launch window than the parser budget: the measured
-        # share is a lower bound, so a "pass" here would be unearned.
-        reasons.append("launch penceresi asiri yogun (>%d islem)" % MAX_EARLY_TX)
-    if need(metrics.dev, "dev") and metrics.dev >= cfg.max_dev_holdings:
-        reasons.append("dev %.1f%% >= %.1f%%" % (metrics.dev, cfg.max_dev_holdings))
-    if need(metrics.top10, "top10") and metrics.top10 >= cfg.max_top10:
-        reasons.append("top10 %.1f%% >= %.1f%%" % (metrics.top10, cfg.max_top10))
+    if need(metrics.bundler, "bundler", "bundler") and metrics.bundler >= cfg.max_bundler:
+        add("bundler", "bundler %.1f%% >= %.1f%%" % (metrics.bundler, cfg.max_bundler))
+    if need(metrics.sniper, "sniper", "sniper") and metrics.sniper >= cfg.max_sniper:
+        add("sniper", "sniper %.1f%% >= %.1f%%" % (metrics.sniper, cfg.max_sniper))
+    if metrics.sniper_truncated and cfg.reject_on_busy_launch:
+        # Olculen sniper payi alt sinirdir, yani "gecti" demek hak edilmemis
+        # olurdu - ESKI gerekce buydu. Ama yogun launch penceresi ayni zamanda
+        # runner'in imzasidir ve bu kural tam da en canli coinleri eliyordu.
+        # Artik varsayilan olarak KAPALI; olculur ama reddetmez.
+        add("launch_busy", "launch penceresi asiri yogun (>%d islem)" % MAX_EARLY_TX)
+    if need(metrics.dev, "dev", "dev") and metrics.dev >= cfg.max_dev_holdings:
+        add("dev", "dev %.1f%% >= %.1f%%" % (metrics.dev, cfg.max_dev_holdings))
+    if need(metrics.top10, "top10", "top10") and metrics.top10 >= cfg.max_top10:
+        add("top10", "top10 %.1f%% >= %.1f%%" % (metrics.top10, cfg.max_top10))
 
     if metrics.lp_burned is not True:
-        reasons.append("LP burn dogrulanamadi" if metrics.lp_burned is None else "LP burn edilmemis")
+        add("lp_burn", "LP burn dogrulanamadi" if metrics.lp_burned is None else "LP burn edilmemis")
 
-    if need(metrics.market_cap, "mcap"):
+    if need(metrics.market_cap, "mcap", "mcap"):
         if metrics.market_cap < cfg.min_mcap:
-            reasons.append("mcap $%.0f < $%.0f" % (metrics.market_cap, cfg.min_mcap))
+            add("mcap_low", "mcap $%.0f < $%.0f" % (metrics.market_cap, cfg.min_mcap))
         elif metrics.market_cap > cfg.max_mcap:
-            reasons.append("mcap $%.0f > $%.0f" % (metrics.market_cap, cfg.max_mcap))
+            add("mcap_high", "mcap $%.0f > $%.0f" % (metrics.market_cap, cfg.max_mcap))
 
     # Demand check. A coin younger than Dexscreener's indexing lag has no 5m
     # volume at all, so the on-chain SOL paid into the curve is the primary
     # measure and the 5m volume only applies once it actually exists.
     if metrics.curve_sol is not None and not metrics.curve_complete:
         if metrics.curve_sol < cfg.min_curve_sol:
-            reasons.append("curve %.2f SOL < %.2f SOL" % (metrics.curve_sol, cfg.min_curve_sol))
+            add("curve_low", "curve %.2f SOL < %.2f SOL" % (metrics.curve_sol, cfg.min_curve_sol))
         if metrics.curve_sol > cfg.max_curve_sol:
-            reasons.append("curve %.2f SOL > %.2f SOL" % (metrics.curve_sol, cfg.max_curve_sol))
+            add("curve_high", "curve %.2f SOL > %.2f SOL" % (metrics.curve_sol, cfg.max_curve_sol))
         if metrics.volume_5m is not None and metrics.volume_5m <= cfg.min_volume_5m:
-            reasons.append("5m hacim $%.0f <= $%.0f" % (metrics.volume_5m, cfg.min_volume_5m))
-    elif need(metrics.volume_5m, "5m hacim") and metrics.volume_5m <= cfg.min_volume_5m:
-        reasons.append("5m hacim $%.0f <= $%.0f" % (metrics.volume_5m, cfg.min_volume_5m))
+            add("volume", "5m hacim $%.0f <= $%.0f" % (metrics.volume_5m, cfg.min_volume_5m))
+    elif need(metrics.volume_5m, "5m hacim", "volume") and metrics.volume_5m <= cfg.min_volume_5m:
+        add("volume", "5m hacim $%.0f <= $%.0f" % (metrics.volume_5m, cfg.min_volume_5m))
 
     if metrics.freeze_authority:
-        reasons.append("freeze authority acik")
+        add("freeze", "freeze authority acik")
 
     if metrics.price_usd is None or metrics.price_usd <= 0:
-        reasons.append("fiyat verisi yok")
+        add("no_price", "fiyat verisi yok")
 
-    return AnalysisResult(passed=not reasons, reasons=reasons, metrics=metrics)
+    return AnalysisResult(passed=not reasons, reasons=reasons, codes=codes, metrics=metrics)
 
 
 async def analyze(mint: str, creator: Optional[str] = None, delay: Optional[float] = None,

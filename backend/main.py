@@ -230,6 +230,21 @@ async def api_signal_stats():
     return db.copy_signal_stats()
 
 
+@app.get("/api/coins")
+async def api_coins(limit: int = 200):
+    return db.get_coin_decisions(limit)
+
+
+@app.get("/api/coins/stats")
+async def api_coin_stats():
+    """Sniper'in hangi kurali kac coini eledigi.
+
+    `sole_blocker` asil onemli olan: yalnizca O KURAL yuzunden reddedilen
+    coinler. Bir kurali gevsetmenin kac coini serbest birakacagini soyler.
+    """
+    return db.coin_decision_stats()
+
+
 @app.post("/api/positions/{position_id}/sell")
 async def api_sell(position_id: int, payload: dict | None = None):
     """Manual exit. Body {"percent": 50} sells half; no body sells everything."""

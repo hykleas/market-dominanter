@@ -73,7 +73,12 @@ class Settings:
     max_sniper: float = 10.0
     max_dev_holdings: float = 5.0
     min_mcap: float = 5000.0
-    max_mcap: float = 25000.0
+    # TERS SECIM DUZELTMESI. $25k tavani, 90. saniyede hala o bandin altinda
+    # olan - yani ILGI GORMEMIS - coinleri seciyordu; runner'lar bandi coktan
+    # asip reddediliyordu. Kanit: alinan en iyi coinin ZIRVESI $14,540'ti,
+    # tavanin bile altinda. Tavan artik traction'i cezalandirmayacak kadar
+    # yukarida.
+    max_mcap: float = 150000.0
     stop_loss: float = 30.0
     # top10 toplam arza gore olculuyor (curve disi float'a gore olculdugunde
     # 30 saniyelik bir coinde tek alici oldugu icin her zaman %100 cikiyordu).
@@ -82,11 +87,20 @@ class Settings:
     # bonding curve'e giren gercek SOL; 5m hacim sadece veri varsa uygulaniyor.
     min_volume_5m: float = 0.0
     min_curve_sol: float = 2.0
-    max_curve_sol: float = 30.0
+    # Ayni ters secim: 30 SOL, curve ilerlemesinin ~%35'i demekti. Bu tavan da
+    # "fazla talep = red" kapisiydi.
+    max_curve_sol: float = 70.0
     # 30sn'de coinlerin neredeyse tamami launch tabaninda duruyor (canli olcum:
     # mcap $2281 = curve tabani, curve 0.00 SOL). 90sn'de ayrisiyorlar, yani filtre
     # ancak orada gercek sinyalle calisiyor. Sniper penceresi (15sn) de kapanmis olur.
-    analyze_delay: float = 90.0
+    # 90sn, bandin anlamli oldugu ani kaciriyordu: o sureye kadar kazananlar
+    # zaten mcap tavanini asmis oluyordu. 40sn, sinyalin olustugu ama bandin
+    # hala ayirt edici oldugu nokta.
+    analyze_delay: float = 40.0
+    # Launch penceresinde MAX_EARLY_TX'ten fazla islem olmasi eskiden KOSULSUZ
+    # reddi tetikliyordu. Ama yogun launch penceresi runner'in imzasidir; bu
+    # kural tam da en canli coinleri eliyordu. False = olculur, reddetmez.
+    reject_on_busy_launch: bool = False
     slippage_bps: int = 1500
 
     # --- kademeli satis + trailing stop ---

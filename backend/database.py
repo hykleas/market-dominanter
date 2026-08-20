@@ -121,6 +121,25 @@ def init_db() -> None:
                 skip_reason       TEXT,
                 position_id       INTEGER
             );
+            CREATE TABLE IF NOT EXISTS coin_decisions (
+                id           INTEGER PRIMARY KEY AUTOINCREMENT,
+                mint         TEXT,
+                name         TEXT,
+                decided_at   TEXT,
+                result       TEXT,      -- BOUGHT | REJECTED
+                reason_codes TEXT,      -- virgulle ayrilmis kural kodlari
+                reason_text  TEXT,      -- insan okunur tam gerekce
+                mcap         REAL,
+                curve_sol    REAL,
+                bundler      REAL,
+                sniper       REAL,
+                dev          REAL,
+                top10        REAL,
+                liquidity    REAL,
+                volume_5m    REAL,
+                position_id  INTEGER
+            );
+            CREATE INDEX IF NOT EXISTS idx_coin_decisions_id ON coin_decisions(id DESC);
             CREATE INDEX IF NOT EXISTS idx_positions_status ON positions(status);
             CREATE INDEX IF NOT EXISTS idx_trades_exit ON trades(exit_time);
             CREATE INDEX IF NOT EXISTS idx_signals_id ON copy_signals(id DESC);
@@ -436,6 +455,73 @@ def copy_signal_stats() -> Dict[str, Any]:
     return {
         "actions": {r["action"]: int(r["n"]) for r in actions},
         "skip_reasons": {r["skip_reason"]: int(r["n"]) for r in reasons},
+    }
+
+
+# --------------------------------------------------------------------------- #
+# Coin decisions (legacy sniper)
+# --------------------------------------------------------------------------- #
+def add_coin_decision(row: Dict[str, Any], result: str, reason_codes: List[str],
+                      reason_text: str, position_id: Optional[int] = None) -> None:
+    """Sniper'in bir coin hakkindaki kararini kaydet - RED DAHIL.
+
+    19 Agustos calistirmasinin en buyuk eksigi buydu: `analyzer.evaluate` her
+    red icin duzgun bir gerekce uretiyor ve panele basiyordu, ama hicbir yere
+    yazmiyordu. Sonuc olarak hangi kuralin kac coini eledigi hic olculemedi ve
+    filtrenin ters secim yaptigi ancak aylar sonra cikarimla anlasildi.
+    """
+    with _lock:
+        conn = _connect()
+        conn.execute(
+            """INSERT INTO coin_decisions (mint, name, decided_at, result, reason_codes,
+                                           reason_text, mcap, curve_sol, bundler, sniper,
+                                           dev, top10, liquidity, volume_5m, position_id)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (row.get("mint"), row.get("name"), datetime.now().isoformat(timespec="seconds"),
+             result, ",".join(reason_codes), reason_text[:500],
+             row.get("mcap"), row.get("curve_sol"), row.get("bundler"), row.get("sniper"),
+             row.get("dev"), row.get("top10"), row.get("liquidity"), row.get("volume_5m"),
+             position_id),
+        )
+        conn.commit()
+
+
+def get_coin_decisions(limit: int = 200) -> List[Dict[str, Any]]:
+    with _lock:
+        conn = _connect()
+        rows = conn.execute("SELECT * FROM coin_decisions ORDER BY id DESC LIMIT ?",
+                            (limit,)).fetchall()
+    return [dict(r) for r in rows]
+
+
+def coin_decision_stats() -> Dict[str, Any]:
+    """Hangi kural kac coini eledi. Sniper'in hic sahip olmadigi olcum.
+
+    Bir coin birden fazla kurala takilabilir; `by_rule` her kuralin KAC KEZ
+    devreye girdigini sayar (toplamlari coin sayisini asabilir). `sole_blocker`
+    ise yalnizca O KURAL yuzunden reddedilen coinleri sayar - asil onemli olan
+    budur: bir kurali gevsetmenin kac coini serbest birakacagini soyler.
+    """
+    with _lock:
+        conn = _connect()
+        totals = conn.execute(
+            "SELECT result, COUNT(*) AS n FROM coin_decisions GROUP BY result").fetchall()
+        rows = conn.execute(
+            "SELECT reason_codes FROM coin_decisions WHERE result='REJECTED'").fetchall()
+
+    by_rule: Dict[str, int] = {}
+    sole: Dict[str, int] = {}
+    for row in rows:
+        codes = [c for c in (row["reason_codes"] or "").split(",") if c]
+        for code in set(codes):
+            by_rule[code] = by_rule.get(code, 0) + 1
+        if len(set(codes)) == 1:
+            only = codes[0]
+            sole[only] = sole.get(only, 0) + 1
+    return {
+        "totals": {r["result"]: int(r["n"]) for r in totals},
+        "by_rule": dict(sorted(by_rule.items(), key=lambda kv: -kv[1])),
+        "sole_blocker": dict(sorted(sole.items(), key=lambda kv: -kv[1])),
     }
 
 
