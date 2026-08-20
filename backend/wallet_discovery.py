@@ -21,11 +21,15 @@ CLI:
     python -m backend.wallet_discovery --days 14 --min-mcap 200000
     python -m backend.wallet_discovery --limit 30 --min-hits 3 --dry-run
 
-Batch yavastir ve maliyeti token'in populerligiyle dogru orantilidir: launch
-penceresine varmak icin araya giren TUM islemlerin uzerinden gecmek gerekir
-(getSignaturesForAddress yalnizca yeniden eskiye gider). Canli olcumde $324K'lik
-bir token 400.000+ imzaya sahipti. Genc tokenlar cok daha ucuzdur - `--days 2-3`
-ile calistirmak kapsami ciddi sekilde artirir. Gece birakilmak uzere tasarlandi.
+Launch penceresi MINT'ten degil BONDING CURVE hesabindan taranir: mint'in
+gecmisi token yasadikca buyur (graduation sonrasi DEX hacmi de oraya birikir),
+curve'un gecmisi ise graduation'da biter. Ayni token uzerinde olculdu:
+
+    mint  -> 400.000+ imza, 400+ sayfa, >120sn, launch'a ULASILAMADI
+    curve ->      1.980 imza,   2 sayfa,   0.6sn, ulasildi
+
+pump.fun tokeni olmayan mint'lerde mint taramasina geri dusulur - orada eski
+maliyet gecerlidir ve token butceyi asarsa atlanir.
 
 DEXSCREENER KISITI: ucretsiz API'de "son 14 gunun en cok kazananlari" diye bir
 uc nokta YOK. Havuz; one cikarilan/boost'lanan listeler ve arama terimlerinden
@@ -50,9 +54,10 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 
 import analyzer  # noqa: E402
 import database as db  # noqa: E402
+import pumpfun  # noqa: E402
 import rpc  # noqa: E402
 import state  # noqa: E402
-from wallet_scorer import CANDIDATES_FILE, parse_wallet_tx  # noqa: E402
+from wallet_scorer import CANDIDATES_FILE  # noqa: E402
 
 log = logging.getLogger("market-dominanter")
 
@@ -310,6 +315,41 @@ async def verify_ages(winners: Sequence[Winner], days: float) -> List[Winner]:
 # --------------------------------------------------------------------------- #
 # Launch penceresi
 # --------------------------------------------------------------------------- #
+def token_receiver(tx: Dict[str, Any], mint: str) -> Optional[str]:
+    """Islemi imzalayan, EGER o islemde bu mint'ten net token aldiysa.
+
+    Kasitli olarak `wallet_scorer.parse_wallet_tx`ten daha gevsek. O fonksiyon
+    PnL hesaplayacagi icin "token girdi VE SOL cikti" ariyor; launch penceresinde
+    bu kural cok eliyor. Olculen ornek: aggregator uzerinden yonlendirilen bir
+    alimda SOL tarafi ucuncu bir tarafin WSOL hesabindan gectigi icin alicinin
+    NATIVE SOL bakiyesi ARTIYOR (+0.648) - katI kural bunu alim saymiyordu ve
+    launch penceresindeki 368 islemin tamami eleniyordu.
+
+    Burada is farkli: kimin bakmaya deger oldugunu bulmak. Imzalayan sifatiyla
+    launch penceresinde token almis olmak yeterli sinyal; botlari zaten
+    `--skip-first-sec` ve sonrasinda `wallet_scorer` eliyor.
+    """
+    signer = tx_signer(tx)
+    if not signer or not tx:
+        return None
+    meta = tx.get("meta") or {}
+    if meta.get("err"):
+        return None
+
+    delta = 0.0
+    for entries, sign in ((meta.get("preTokenBalances") or [], -1.0),
+                          (meta.get("postTokenBalances") or [], 1.0)):
+        for bal in entries:
+            if bal.get("owner") != signer or bal.get("mint") != mint:
+                continue
+            try:
+                amount = float((bal.get("uiTokenAmount") or {}).get("uiAmount") or 0.0)
+            except (TypeError, ValueError):
+                continue
+            delta += sign * amount
+    return signer if delta > 0 else None
+
+
 def tx_signer(tx: Dict[str, Any]) -> Optional[str]:
     """Islemin ilk imzalayani = alici. Token hesabi/curve PDA'si degil."""
     keys = ((tx.get("transaction") or {}).get("message") or {}).get("accountKeys") or []
@@ -321,69 +361,105 @@ def tx_signer(tx: Dict[str, Any]) -> Optional[str]:
     return None
 
 
-async def signatures_in_window(mint: str, launch_ts: float, start: float, end: float,
-                               max_pages: int) -> Tuple[List[Dict[str, Any]], bool]:
-    """(penceredeki imzalar artan sirada, pencereye_ulasildi).
+async def launch_scan_target(mint: str) -> Tuple[str, str]:
+    """(taranacak adres, tur) - launch penceresi icin en ucuz giris noktasi.
 
-    getSignaturesForAddress her zaman yeniden eskiye gider, o yuzden launch
-    penceresine varmak icin araya giren tum islemlerin uzerinden gecmek
-    gerekiyor - maliyet token'in populerligiyle dogru orantili ve kacinilmaz.
-    Butce dolarsa pencereye ulasilamadi demektir ve cagiran token'i ATLAMALI:
+    Mint'i taramak, token'in TUM omru boyunca yapilmis her islemi gezmek
+    demektir; graduation sonrasi DEX hacmi orada birikir. Bonding curve
+    hesabinin gecmisi ise graduation'da BITER, yani sabit ve kucuk kalir.
+
+    Canli olcum (ayni token, PANTS):
+        mint  -> 400.000+ imza, 400+ sayfa, >120sn, launch'a ULASILAMADI
+        curve ->      1.980 imza,   2 sayfa,   0.6sn, ulasildi
+
+    pump.fun tokeni olmayan (ya da curve hesabi kapanmis) mint'lerde mint
+    taramasina geri dusulur.
+    """
+    pda = pumpfun.curve_address(mint)
+    if pda:
+        account = await rpc.get_account_raw(pda)
+        if account and account.get("owner") == state.PUMP_FUN_PROGRAM:
+            return pda, "curve"
+    return mint, "mint"
+
+
+async def launch_window_signatures(address: str, window_min: float, skip_first_sec: float,
+                                   max_pages: int
+                                   ) -> Tuple[List[Dict[str, Any]], float, bool, int]:
+    """(penceredeki imzalar, launch_ts, launch'a_ulasildi, toplam_basarili_imza).
+
+    Launch ani, TARANAN ADRESIN kendi en eski imzasindan alinir. Disaridan bir
+    zaman damgasi (Dexscreener, metadata) ile beslemek hatali: graduated bir
+    token icin Dexscreener'in pairCreatedAt'i havuzun acilis - yani
+    graduation - anidir, curve hesabinin gecmisi ise tam orada BITER. O capayla
+    curve'u taramak her seferinde bos pencere verir.
+
+    Butce dolarsa launch'a ulasilamadi demektir ve cagiran token'i ATLAMALI:
     yarim bir pencere, "erken alici" listesini sessizce carpitir.
     """
-    collected: List[Dict[str, Any]] = []
+    pages: List[List[Dict[str, Any]]] = []
     before: Optional[str] = None
     reached = False
 
     for _ in range(max_pages):
-        page = await rpc.get_signatures(mint, limit=SIG_PAGE, before=before)
+        page = await rpc.get_signatures(address, limit=SIG_PAGE, before=before)
         if not page:
             reached = True       # daha eskisi yok
             break
-        for sig in page:
-            block_time = float(sig.get("blockTime") or 0)
-            if not sig.get("err") and start <= block_time <= end:
-                collected.append(sig)
-        oldest_ts = float(page[-1].get("blockTime") or 0)
-        if oldest_ts and oldest_ts <= launch_ts:
-            reached = True       # launch anini gectik: pencere tam
-            break
+        pages.append(page)
         if len(page) < SIG_PAGE:
-            reached = True
+            reached = True       # sayfa dolmadi: en eskisine vardik
             break
         before = page[-1]["signature"]
 
-    collected.sort(key=lambda s: (s.get("slot") or 0, s.get("blockTime") or 0))
-    return collected, reached
+    if not reached:
+        return [], 0.0, False, 0
+
+    # Basarisiz islemler atilir. Yogun bir launch'ta bunlar cogunlugu
+    # olusturabilir: olculen bir ornekte curve'un 351 imzasinin 347'si sniper
+    # botlarinin kaybettigi yaristi.
+    everything = [s for page in pages for s in page if not s.get("err")]
+    if not everything:
+        return [], 0.0, True, 0
+    everything.sort(key=lambda s: (s.get("slot") or 0, s.get("blockTime") or 0))
+
+    launch_ts = float(everything[0].get("blockTime") or 0)
+    if launch_ts <= 0:
+        return [], 0.0, True, len(everything)
+    start = launch_ts + skip_first_sec
+    end = launch_ts + window_min * 60.0
+    window = [s for s in everything if start <= float(s.get("blockTime") or 0) <= end]
+    return window, launch_ts, True, len(everything)
 
 
 async def early_buyers(winner: Winner, window_min: float, skip_first_sec: float,
                        max_tx: int, max_pages: int) -> Tuple[Set[str], Optional[str]]:
     """(erken alici cuzdanlar, atlama_sebebi)."""
-    launch_ts = winner.created_at
-    if launch_ts <= 0:
-        return set(), "launch zamani yok"
-
-    start = launch_ts + skip_first_sec
-    end = launch_ts + window_min * 60.0
-    sigs, reached = await signatures_in_window(winner.mint, launch_ts, start, end, max_pages)
+    target, kind = await launch_scan_target(winner.mint)
+    sigs, launch_ts, reached, total_ok = await launch_window_signatures(
+        target, window_min, skip_first_sec, max_pages)
     if not reached:
-        return set(), "launch penceresine ulasilamadi (%d sayfa yetmedi)" % max_pages
+        return set(), ("launch'a ulasilamadi (%s taramasi, %d sayfa yetmedi)"
+                       % (kind, max_pages))
     window = sigs[:max_tx]
     if not window:
-        return set(), "pencerede islem yok"
+        # Butce sorunu DEGIL: launch'a varildi ama pencerede sayilacak islem
+        # yok. Ya launch tamamen ilk 3 saniyeye sikismis (sniper yarisi) ya da
+        # islemlerin neredeyse tamami basarisiz olmus.
+        return set(), ("pencerede islem yok - %d basarili imza, hepsi ilk %.0fsn "
+                       "icinde ya da pencere disinda (%s taramasi)"
+                       % (total_ok, skip_first_sec, kind))
+    # Zincirden okunan launch, Dexscreener'in havuz yasindan daha guvenilir.
+    winner.created_at = launch_ts
 
     buyers: Set[str] = set()
     for sig in window:
         tx = await rpc.get_transaction(sig["signature"])
         if not tx:
             continue
-        signer = tx_signer(tx)
-        if not signer:
-            continue
-        event = parse_wallet_tx(tx, signer)
-        if event and event.side == "buy" and event.mint == winner.mint:
-            buyers.add(signer)
+        buyer = token_receiver(tx, winner.mint)
+        if buyer:
+            buyers.add(buyer)
     return buyers, None
 
 

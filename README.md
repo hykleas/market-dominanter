@@ -54,13 +54,27 @@ Discovery elle eklenen kayitlarin `source`/`note` alanlarina dokunmaz.
    MEV/sniper botlarina aittir, atilir.
 5. 2+ kazananda gorunen cuzdanlar aday olur
 
-**Kapsam uyarisi:** launch penceresine ulasmak icin araya giren tum islemlerin
-uzerinden gecmek gerekir (`getSignaturesForAddress` yalnizca yeniden eskiye
-gider). Canli olcumde $324K'lik bir token 400.000+ imzaya sahipti ve 150 sayfa
-yetmedi - bu tokenlar ATLANIR, cunku yarim bir pencere listeyi sessizce
-carpitir. Her calistirma kapsam ozeti basar. Kapsami artirmak icin
-`--max-pages` yukseltin ya da `--days` dusurun: genc tokenlarin penceresi cok
-daha ucuzdur.
+**Tarama MINT'ten degil BONDING CURVE hesabindan yapilir.** Mint'in imza
+gecmisi token yasadikca buyur (graduation sonrasi DEX hacmi de oraya birikir);
+curve'un gecmisi ise graduation'da biter. Ayni token (PANTS) uzerinde olculdu:
+
+| Hedef | Imza | Sayfa | Sure | Launch'a ulasti |
+|---|---|---|---|---|
+| mint | 400.000+ | 400+ | >120sn | **hayir** |
+| curve | 1.980 | 2 | 0.6sn | evet |
+
+pump.fun tokeni olmayan mint'lerde mint taramasina geri dusulur.
+
+Launch ani, taranan adresin KENDI en eski imzasindan alinir. Disaridan bir
+zaman damgasi vermek hatali olur: graduated bir token icin Dexscreener'in
+`pairCreatedAt` degeri havuzun acilis - yani graduation - anidir, curve'un
+gecmisi ise tam orada biter, dolayisiyla pencere hep bos cikar.
+
+**Atlanan tokenlar.** Her calistirma kapsam ozeti basar. Iki farkli sebep var:
+`launch'a ulasilamadi` butce sorunudur (`--max-pages` yukseltin), `pencerede
+islem yok` ise tokenin kendi ozelligidir - olculen bir ornekte curve'un 351
+imzasinin 347'si sniper botlarinin kaybettigi yaristi ve basarili 4 islem de
+ilk 3 saniyedeydi, yani MEV bandinda.
 
 **2. Skorla.** Panelden `SKORLA`, ya da:
 
