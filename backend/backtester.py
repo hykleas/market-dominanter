@@ -54,7 +54,7 @@ import rpc  # noqa: E402
 import state  # noqa: E402
 from wallet_scorer import (  # noqa: E402
     ClosedTrade, WalletEvent, apply_filters, compute_metrics, fetch_wallet_events,
-    load_candidates, match_fifo, probe_activity,
+    load_candidates, match_fifo, probe_activity, probe_trading_style,
 )
 
 log = logging.getLogger("market-dominanter")
@@ -235,6 +235,16 @@ async def backtest(addresses: Sequence[str], split_days: float = 15.0,
                 state.bus.log("%s ELENDI: %s" % (address[:10], reason), "warn")
                 continue
 
+            # STIL TARAMASI: kopyalanamaz cuzdani tam gecmisini cekmeden ele.
+            style = await probe_trading_style(address, int(cfg.scorer_style_sample))
+            if style.trades and style.median_hold_seconds < cfg.scorer_min_hold_seconds:
+                reason = ("kopyalanamaz - medyan tutus %.0f sn < %.0f sn (%d islem ornegi)"
+                          % (style.median_hold_seconds, cfg.scorer_min_hold_seconds,
+                             style.trades))
+                result.wallets_rejected.append((address, reason))
+                state.bus.log("%s ELENDI: %s" % (address[:10], reason), "warn")
+                continue
+
             events, complete = await fetch_wallet_events(address, select_start,
                                                          int(cfg.scorer_max_signatures))
             if not complete:
@@ -374,6 +384,8 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
                    help="toplam pencere (varsayilan: scorer_lookback_days)")
     p.add_argument("--max-signatures", type=int, default=None,
                    help="cuzdan basina imza tavani (varsayilan: scorer_max_signatures)")
+    p.add_argument("--set", action="append", default=None, metavar="AYAR=DEGER",
+                   help="ayari gecici olarak degistir (tekrarlanabilir), or. min_leader_buy_sol=0.05")
     p.add_argument("--no-selection-filter", action="store_true",
                    help="secim donemi elemesini atla (ham potansiyeli gormek icin)")
     return p.parse_args(argv)
@@ -409,6 +421,18 @@ async def _main(argv: Optional[Sequence[str]] = None) -> int:
     try:
         if args.max_signatures:
             state.settings.scorer_max_signatures = int(args.max_signatures)
+        for pair in (args.set or []):
+            if "=" not in pair:
+                print("--set AYAR=DEGER biciminde olmali: %s" % pair)
+                return 1
+            key, value = pair.split("=", 1)
+            # Kalici settings.json'i kirletmeden, yalnizca bu calistirma icin.
+            before = getattr(state.settings, key.strip(), None)
+            if before is None:
+                print("bilinmeyen ayar: %s" % key)
+                return 1
+            setattr(state.settings, key.strip(), type(before)(value))
+            print("ayar: %s = %s (onceki %s)" % (key.strip(), value, before))
         result = await backtest(addresses, args.split_days, args.latency_penalty,
                                 skip_selection_filter=args.no_selection_filter,
                                 lookback_days=args.lookback_days)

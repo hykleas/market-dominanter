@@ -385,6 +385,61 @@ async def probe_activity(wallet: str, since: float, max_pages: int = 40) -> Acti
     return probe
 
 
+@dataclass
+class StyleProbe:
+    """Cuzdanin trade STILI - kucuk bir ornekten cikarilir."""
+    sampled: int = 0
+    trades: int = 0
+    median_hold_seconds: float = 0.0
+    median_buy_sol: float = 0.0
+    buy_size_cv: float = 0.0
+
+    @property
+    def copyable(self) -> bool:
+        return self.trades > 0
+
+
+async def probe_trading_style(wallet: str, sample_size: int = 150) -> StyleProbe:
+    """Cuzdanin EN SON islemlerinden kucuk bir orneklem cozup stilini olc.
+
+    NEDEN: en pahali hata, kopyalanamaz bir cuzdani takibe alip haftalarca
+    beklemek. Olculen ornek 190 islemde %7.4 basari ve -%20.3 verdi; tek
+    bakilmasi gereken sey medyan tutusunun 0 DAKIKA olmasiydi. Saniyeler icinde
+    girip cikan bir cuzdani kopyalayamazsin - sinyali 3-8 saniye sonra gorursun.
+
+    Tam gecmis (binlerce islem) yerine son `sample_size` islem cozulur: stil
+    sorusu icin fazlasiyla yeter ve dakikalar yerine saniyeler surer.
+    """
+    probe = StyleProbe()
+    signatures = await rpc.get_signatures(wallet, limit=min(sample_size * 3, SIG_PAGE))
+    if not signatures:
+        return probe
+
+    events: List[WalletEvent] = []
+    for sig in signatures[:sample_size * 3]:
+        if sig.get("err"):
+            continue
+        tx = await rpc.get_transaction(sig["signature"])
+        event = parse_wallet_tx(tx, wallet) if tx else None
+        if event:
+            events.append(event)
+        probe.sampled += 1
+        if len(events) >= sample_size:
+            break
+
+    trades = match_fifo(events)
+    probe.trades = len(trades)
+    if trades:
+        probe.median_hold_seconds = _median([t.hold_seconds for t in trades])
+    buys = [e.sol for e in events if e.side == "buy" and e.sol > 0]
+    if buys:
+        probe.median_buy_sol = _median(buys)
+        if len(buys) >= 2:
+            mean = statistics.fmean(buys)
+            probe.buy_size_cv = (statistics.pstdev(buys) / mean) if mean > 0 else 0.0
+    return probe
+
+
 async def fetch_wallet_events(wallet: str, since: float, max_signatures: int
                               ) -> Tuple[List[WalletEvent], bool]:
     """(olaylar, pencere_tam_kapsandi_mi).
@@ -594,6 +649,17 @@ async def score_wallets(candidates: Optional[List[Dict[str, Any]]] = None,
                 metrics = WalletMetrics(address=address)
                 metrics.rejected = ("bot yogunlugu (%.0f islem/gun > %.0f) - islemler "
                                     "cozulmedi" % (probe.tx_per_day, cfg.scorer_max_tx_per_day))
+                results.append(metrics)
+                db.upsert_wallet(address, source=candidate.get("source"),
+                                 note=candidate.get("note"))
+                state.bus.log("%s ELENDI: %s" % (address[:10], metrics.rejected), "warn")
+                continue
+
+            style = await probe_trading_style(address, int(cfg.scorer_style_sample))
+            if style.trades and style.median_hold_seconds < cfg.scorer_min_hold_seconds:
+                metrics = WalletMetrics(address=address)
+                metrics.rejected = ("kopyalanamaz - medyan tutus %.0f sn < %.0f sn"
+                                    % (style.median_hold_seconds, cfg.scorer_min_hold_seconds))
                 results.append(metrics)
                 db.upsert_wallet(address, source=candidate.get("source"),
                                  note=candidate.get("note"))

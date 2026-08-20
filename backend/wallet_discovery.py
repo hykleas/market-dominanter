@@ -8,8 +8,14 @@ Akis:
   1. Dexscreener'dan Solana token havuzu topla, mcap ve yasa gore filtrele
      -> "kazananlar" (varsayilan: son 14 gun, mcap > $200K)
   2. Launch anini ZINCIRDEN dogrula (Metaplex metadata hesabi, tek RPC cagrisi)
-  3. Launch + 3sn .. launch + 30dk arasinda ALIM yapan cuzdanlari cikar
-     (ilk 3 saniye MEV/sniper botlarindir, atilir)
+  3. Launch + 1dk .. launch + 4sa arasinda ALIM yapan cuzdanlari cikar
+
+     PENCERE NEDEN GENIS: 30 dakikalik pencereyle yapilan ilk turda bulunan 8
+     adayin TAMAMI bot cikti (183-3791 islem/gun). Bir tanesi backtest'te 190
+     islemde %7.4 basari ve -%20.3 verdi; medyan tutusu 0 DAKIKA idi. Boyle bir
+     cuzdan kopyalanamaz - sen sinyali 3-8 saniye sonra gorursun, o coktan
+     cikmis olur. Launch'in ilk dakikasi bot surusudur; kopyalanabilir bir
+     lider daha GEC ve daha YAVAS alir.
   4. 2+ kazananda gorunen cuzdanlari aday say
   5. wallets_candidates.json'a ekle (mevcut adresler korunur)
 
@@ -518,7 +524,7 @@ def save_candidates(entries: List[Dict[str, Any]]) -> None:
 # Orkestrasyon
 # --------------------------------------------------------------------------- #
 async def discover(days: float = 14.0, min_mcap: float = 200_000.0, limit: int = 25,
-                   window_min: float = 30.0, skip_first_sec: float = 3.0,
+                   window_min: float = 240.0, skip_first_sec: float = 60.0,
                    min_hits: int = 2, max_tx: int = 200, max_pages: int = 150,
                    search_terms: Sequence[str] = DEFAULT_SEARCH_TERMS,
                    max_mcap: Optional[float] = DEFAULT_MAX_MCAP,
@@ -610,9 +616,10 @@ def _parse_args(argv: Optional[Sequence[str]] = None) -> argparse.Namespace:
     p.add_argument("--max-mcap", type=float, default=DEFAULT_MAX_MCAP,
                    help="maksimum market cap ($); 0 = sinirsiz")
     p.add_argument("--limit", type=int, default=25, help="taranacak kazanan token sayisi")
-    p.add_argument("--window-min", type=float, default=30.0, help="launch sonrasi pencere (dk)")
-    p.add_argument("--skip-first-sec", type=float, default=3.0,
-                   help="ilk N saniyedeki alicilar atlanir (MEV/sniper)")
+    p.add_argument("--window-min", type=float, default=240.0,
+                   help="launch sonrasi pencere (dk) - genis pencere yavas/insan alicilari yakalar")
+    p.add_argument("--skip-first-sec", type=float, default=60.0,
+                   help="ilk N saniyedeki alicilar atlanir (bot surusu)")
     p.add_argument("--min-hits", type=int, default=2,
                    help="aday olmak icin kac kazananda gorunmeli")
     p.add_argument("--max-tx", type=int, default=200, help="token basina cozulecek islem tavani")
