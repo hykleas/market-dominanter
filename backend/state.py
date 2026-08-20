@@ -13,7 +13,7 @@ from dataclasses import asdict, dataclass, fields
 from pathlib import Path
 from typing import Any, Dict, List
 
-log = logging.getLogger("market-fucker")
+log = logging.getLogger("market-dominanter")
 
 ROOT = Path(__file__).resolve().parent.parent
 SETTINGS_FILE = ROOT / "settings.json"

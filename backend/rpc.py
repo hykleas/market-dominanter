@@ -11,7 +11,7 @@ import httpx
 
 import state
 
-log = logging.getLogger("market-fucker")
+log = logging.getLogger("market-dominanter")
 
 _ids = itertools.count(1)
 _client: Optional[httpx.AsyncClient] = None

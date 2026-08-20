@@ -17,7 +17,7 @@ import rpc
 import state
 import trader
 
-log = logging.getLogger("market-fucker")
+log = logging.getLogger("market-dominanter")
 
 CREATE_MARKERS = ("Program log: Instruction: Create", "Program log: Instruction: CreateV2",
                   "Program log: Create:")

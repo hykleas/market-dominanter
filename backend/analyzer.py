@@ -30,7 +30,7 @@ import pumpfun
 import rpc
 import state
 
-log = logging.getLogger("market-fucker")
+log = logging.getLogger("market-dominanter")
 
 SYSTEM_PROGRAM = "11111111111111111111111111111111"
 # Dex ids where liquidity sits in a program-owned curve/pool that cannot be pulled.

@@ -114,7 +114,7 @@ simülasyonu yok.
 
 ## 6. Küçük notlar
 
-- `tools/*.py` dosyalarındaki `C:\Users\Lenovo\market-fucker` sabit yolları düzeltildi
+- `tools/*.py` dosyalarındaki `C:\Users\Lenovo\market-dominanter` sabit yolları düzeltildi
   (artık `__file__`'dan türetiliyor) — bu makinede hiçbiri çalışmıyordu.
 - `getTokenLargestAccounts` BONK gibi çok holder'lı tokenlarda FAIL dönüyor (Helius
   reddediyor). Yeni coinlerde sorunsuz çalışıyor, sadece bilinsin.

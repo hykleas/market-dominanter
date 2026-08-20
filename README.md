@@ -1,4 +1,4 @@
-# market-fucker
+# market-dominanter
 
 Solana memecoin sniper botu. Yeni pump.fun launch'larini Helius websocket ile yakalar,
 on-chain + Dexscreener verisiyle filtreler, kurallara uyanlari Jupiter uzerinden alir,

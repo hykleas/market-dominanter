@@ -9,7 +9,7 @@ from datetime import datetime
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-log = logging.getLogger("market-fucker")
+log = logging.getLogger("market-dominanter")
 
 DB_PATH = Path(__file__).resolve().parent.parent / "trades.db"
 

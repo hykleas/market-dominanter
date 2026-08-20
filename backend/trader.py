@@ -27,7 +27,7 @@ import database as db
 import rpc
 import state
 
-log = logging.getLogger("market-fucker")
+log = logging.getLogger("market-dominanter")
 
 try:  # solders is only required for live trading
     from solders.keypair import Keypair  # type: ignore

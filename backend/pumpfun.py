@@ -29,7 +29,7 @@ from typing import Any, Dict, Optional
 import rpc
 import state
 
-log = logging.getLogger("market-fucker")
+log = logging.getLogger("market-dominanter")
 
 CURVE_SEED = b"bonding-curve"
 _curve_cache: Dict[str, Optional[str]] = {}

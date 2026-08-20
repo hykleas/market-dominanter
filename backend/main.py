@@ -1,4 +1,4 @@
-"""market-fucker :: FastAPI server + websocket hub."""
+"""market-dominanter :: FastAPI server + websocket hub."""
 from __future__ import annotations
 
 import asyncio
@@ -31,7 +31,7 @@ logging.basicConfig(
     format="%(asctime)s %(levelname)-7s %(message)s",
     datefmt="%H:%M:%S",
 )
-log = logging.getLogger("market-fucker")
+log = logging.getLogger("market-dominanter")
 
 # httpx her istegi INFO seviyesinde, TAM URL ile logluyor - RPC adresinde Helius
 # anahtari var, yani anahtar duz metin olarak loga/konsola dusuyordu.
@@ -63,7 +63,7 @@ async def lifespan(app: FastAPI):
         await asyncio.gather(rpc.close(), analyzer.close(), trader.close(), return_exceptions=True)
 
 
-app = FastAPI(title="market-fucker", lifespan=lifespan)
+app = FastAPI(title="market-dominanter", lifespan=lifespan)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=["*"],
