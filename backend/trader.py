@@ -5,11 +5,20 @@ Dexscreener prices, balance kept in settings.json) and LIVE (Jupiter v6 swaps
 signed with the wallet key). Filters, tiers, trailing stop and bookkeeping are
 identical in both; only the fill differs.
 
-Exit strategy per position:
+Exit strategy depends on how the position was opened.
+
+COPY positions (`source_wallet` set) hand the exit decision to the leader: we
+sell when they sell. Tiers and the trailing stop are deliberately OFF - copying
+the exit is the whole point. Two safety nets cover the leader never selling:
+  * hard stop  - full exit at -hard_stop_pct%
+  * time stop  - full exit after time_stop_minutes if PnL is still below
+                 time_stop_min_pnl%
+
+LEGACY positions (fresh-launch sniper, archived) keep the tier ladder:
   * stop loss  - full exit if price falls stop_loss% below entry BEFORE tier 1
   * tier 1/2/3 - sell a slice at each multiple of the entry price
-  * trailing   - after tier 1, exit the rest when price drops trailing_stop%
-                 below the position ATH
+  * trailing   - armed at trailing_arm_x (NOT at tier 1), then exit the rest
+                 when price drops trailing_stop% below the position ATH
 """
 from __future__ import annotations
 
@@ -17,6 +26,7 @@ import asyncio
 import base64
 import logging
 import os
+import time
 
 from typing import Any, Dict, Optional, Tuple
 
@@ -38,7 +48,6 @@ except Exception:  # pragma: no cover - missing optional dep
     VersionedTransaction = None  # type: ignore
     SOLDERS_OK = False
 
-MONITOR_INTERVAL = 10.0
 _client: Optional[httpx.AsyncClient] = None
 _keypair: Any = None
 _wallet_pubkey: Optional[str] = None
@@ -310,26 +319,38 @@ async def execute_swap(quote: Dict[str, Any]) -> Optional[str]:
 # Buy
 # --------------------------------------------------------------------------- #
 async def buy(mint: str, name: str = "?", price_hint: Optional[float] = None,
-              liquidity_hint: Optional[float] = None) -> Optional[int]:
-    """Open a position worth `settings.auto_buy_sol`. Returns the position id."""
+              liquidity_hint: Optional[float] = None, amount_sol: Optional[float] = None,
+              source_wallet: Optional[str] = None,
+              curve_progress: Optional[float] = None) -> Optional[int]:
+    """Open a position. Returns the position id.
+
+    `amount_sol` defaults to `settings.auto_buy_sol` (legacy sniper); the copy
+    engine passes its own size, already multiplied by any curve-momentum boost.
+    """
     cfg = state.settings
     if db.has_open_position(mint):
         state.bus.log("Zaten acik pozisyon var, atlandi: " + name, "warn")
         return None
 
-    amount_sol = float(cfg.auto_buy_sol)
+    size = float(amount_sol if amount_sol is not None else cfg.auto_buy_sol)
+    if size <= 0:
+        state.bus.log("Gecersiz alim miktari (%.4f SOL): %s" % (size, name), "error")
+        return None
     entry_price = price_hint or await analyzer.current_price(mint) or 0.0
     if entry_price <= 0:
         state.bus.log("Giris fiyati alinamadi, alim atlandi: " + name, "error")
         return None
 
     if is_paper():
-        return await _paper_buy(mint, name, amount_sol, entry_price, liquidity_hint)
-    return await _live_buy(mint, name, amount_sol, entry_price)
+        return await _paper_buy(mint, name, size, entry_price, liquidity_hint,
+                                source_wallet, curve_progress)
+    return await _live_buy(mint, name, size, entry_price, source_wallet, curve_progress)
 
 
 async def _paper_buy(mint: str, name: str, amount_sol: float, entry_price: float,
-                     liquidity_usd: Optional[float] = None) -> Optional[int]:
+                     liquidity_usd: Optional[float] = None,
+                     source_wallet: Optional[str] = None,
+                     curve_progress: Optional[float] = None) -> Optional[int]:
     cfg = state.settings
     await ensure_paper_funded()
     platform_fee, fixed_fee = _fees(amount_sol)
@@ -348,17 +369,24 @@ async def _paper_buy(mint: str, name: str, amount_sol: float, entry_price: float
     tokens = (amount_sol - platform_fee) * sol_usd / fill_price
 
     _credit_paper(-total_cost)
+    # entry_cost_sol = cuzdandan cikan TOPLAM (pozisyon + sabit ucret). PnL buna
+    # gore olculur; amount_sol'e gore olculdugunde giris ucreti kayboluyordu.
     pos_id = db.add_position(mint, name, fill_price, tokens, amount_sol, is_paper=True,
-                             fees_sol=platform_fee + fixed_fee, trailing_pct=cfg.trailing_stop)
+                             fees_sol=platform_fee + fixed_fee, trailing_pct=cfg.trailing_stop,
+                             entry_cost_sol=total_cost, source_wallet=source_wallet,
+                             curve_progress=curve_progress)
     state.bot_state.coins_bought += 1
-    state.bus.log("[PAPER] ALINDI %s - %.4f SOL @ $%.8f (slipaj %%%.2f, fee %.5f SOL)"
-                  % (name, amount_sol, fill_price, slip * 100.0, platform_fee + fixed_fee), "success")
+    state.bus.log("[PAPER] ALINDI %s - %.4f SOL @ $%.8f (slipaj %%%.2f, fee %.5f SOL%s)"
+                  % (name, amount_sol, fill_price, slip * 100.0, platform_fee + fixed_fee,
+                     (" | lider " + source_wallet[:6]) if source_wallet else ""), "success")
     state.bus.publish("position_opened", position_payload(db.get_position(pos_id)))
     await push_balance()
     return pos_id
 
 
-async def _live_buy(mint: str, name: str, amount_sol: float, entry_price: float) -> Optional[int]:
+async def _live_buy(mint: str, name: str, amount_sol: float, entry_price: float,
+                    source_wallet: Optional[str] = None,
+                    curve_progress: Optional[float] = None) -> Optional[int]:
     cfg = state.settings
     lamports = int(amount_sol * state.LAMPORTS_PER_SOL)
     balance = await wallet_balance()
@@ -382,8 +410,13 @@ async def _live_buy(mint: str, name: str, amount_sol: float, entry_price: float)
     except Exception:
         tokens = 0.0
 
+    # Zincir ucreti quote'ta gorunmuyor; sabit ucret tahmini paper ile ayni
+    # kalemlerden kurulur ki PnL iki modda ayni sekilde okunsun.
+    _, fixed_fee = _fees(amount_sol)
     pos_id = db.add_position(mint, name, entry_price, tokens, amount_sol, is_paper=False,
-                             trailing_pct=cfg.trailing_stop)
+                             trailing_pct=cfg.trailing_stop,
+                             entry_cost_sol=amount_sol + fixed_fee,
+                             source_wallet=source_wallet, curve_progress=curve_progress)
     state.bot_state.coins_bought += 1
     state.bus.log("ALINDI %s - %.4f SOL @ $%.8f (tx %s)" % (name, amount_sol, entry_price, signature[:8]),
                   "success")
@@ -515,7 +548,12 @@ def position_payload(pos: Optional[Dict[str, Any]]) -> Dict[str, Any]:
 # Position monitor
 # --------------------------------------------------------------------------- #
 async def monitor_loop() -> None:
-    """Every 10s: refresh prices, lift ATHs, fire tiers / trailing stop / stop loss."""
+    """Refresh prices and fire exits every `settings.price_loop_sec`.
+
+    Only OPEN positions are polled, so the RPC/Dexscreener cost scales with how
+    many positions are actually live, not with the interval alone. The old 10s
+    cadence was filling a -30% stop loss at -42.7%.
+    """
     state.bus.log("Pozisyon takibi basladi", "info")
     while True:
         try:
@@ -526,7 +564,7 @@ async def monitor_loop() -> None:
                     log.error("Pozisyon kontrol hatasi (%s): %s", pos.get("mint"), exc)
         except Exception as exc:
             log.error("Monitor dongusu hatasi: %s", exc)
-        await asyncio.sleep(MONITOR_INTERVAL)
+        await asyncio.sleep(max(float(state.settings.price_loop_sec), 1.0))
 
 
 async def _check_position(pos: Dict[str, Any]) -> None:
@@ -554,8 +592,38 @@ async def _check_position(pos: Dict[str, Any]) -> None:
         "ath_price": levels["ath_price"],
         "trailing_stop_price": levels["trailing_stop_price"],
         "remaining_percent": max(100.0 - float(pos.get("total_sold_percent") or 0.0), 0.0),
+        "source_wallet": pos.get("source_wallet"),
     })
 
+    if pos.get("source_wallet"):
+        await _check_copy_exits(pos, name, pnl)
+    else:
+        await _check_legacy_exits(pos, name, price, pnl, multiple)
+
+
+async def _check_copy_exits(pos: Dict[str, Any], name: str, pnl: float) -> None:
+    """Safety nets for a copied position. The primary exit is the leader selling
+    (copy_engine drives that); these only fire when the leader goes quiet."""
+    cfg = state.settings
+    position_id = int(pos["id"])
+
+    if pnl <= -abs(cfg.hard_stop_pct):
+        state.bus.log("Hard stop: %s (%.1f%%) - lider satmadi" % (name, pnl), "error")
+        await sell(position_id, reason="hard_stop")
+        return
+
+    held_minutes = (time.time() - float(pos.get("timestamp") or time.time())) / 60.0
+    if held_minutes >= cfg.time_stop_minutes and pnl < cfg.time_stop_min_pnl:
+        state.bus.log("Zaman stopu: %s (%.0f dk, %.1f%%) - lider hala satmadi"
+                      % (name, held_minutes, pnl), "warn")
+        await sell(position_id, reason="time_stop")
+
+
+async def _check_legacy_exits(pos: Dict[str, Any], name: str, price: float,
+                              pnl: float, multiple: float) -> None:
+    """Tier ladder for archived fresh-launch positions."""
+    cfg = state.settings
+    position_id = int(pos["id"])
     tier1_done = bool(pos.get("tier1_sold"))
 
     # Stop loss only applies while the position is untouched (before tier 1).
@@ -575,20 +643,28 @@ async def _check_position(pos: Dict[str, Any]) -> None:
         state.bus.log("%s tetiklendi: %s (%.2fx) - %%%.0f satiliyor"
                       % (tier_name.upper(), name, multiple, tier_pct), "success")
         await sell_portion(position_id, float(tier_pct), tier=tier_name)
-        tier1_done = tier1_done or tier_name == "tier1"
 
     fresh = db.get_position(position_id)
     if not fresh or fresh.get("status") != "open":
         return
 
-    # Trailing stop guards the remainder once tier 1 has been taken.
-    if fresh.get("tier1_sold"):
-        trailing = float(fresh.get("trailing_stop_price") or 0.0)
-        if trailing > 0 and price <= trailing:
-            ath = float(fresh.get("ath_price") or price)
-            state.bus.log("Trailing stop: %s (ATH $%.8f -> $%.8f, %.2fx)"
-                          % (name, ath, price, multiple), "warn")
-            await sell(position_id, reason="trailing_stop")
+    # Trailing arms at trailing_arm_x, NOT at tier 1. Gating it on tier 1 left a
+    # dead zone between 1x and 2x: on 19 Aug "derp" peaked at 1.83x, never armed
+    # the trailing stop it had already computed, and round-tripped to -42.7%.
+    ath = float(fresh.get("ath_price") or price)
+    armed = bool(fresh.get("tier1_sold")) or (entry_multiple(fresh, ath) >= cfg.trailing_arm_x)
+    if not armed:
+        return
+    trailing = float(fresh.get("trailing_stop_price") or 0.0)
+    if trailing > 0 and price <= trailing:
+        state.bus.log("Trailing stop: %s (ATH $%.8f -> $%.8f, %.2fx)"
+                      % (name, ath, price, multiple), "warn")
+        await sell(position_id, reason="trailing_stop")
+
+
+def entry_multiple(pos: Dict[str, Any], price: float) -> float:
+    entry = float(pos.get("entry_price") or 0.0)
+    return (price / entry) if entry > 0 else 0.0
 
 
 async def balance_loop(interval: float = 30.0) -> None:

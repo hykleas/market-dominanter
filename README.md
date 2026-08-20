@@ -1,12 +1,116 @@
 # market-dominanter
 
-Solana memecoin sniper botu. Yeni pump.fun launch'larini Helius websocket ile yakalar,
-on-chain + Dexscreener verisiyle filtreler, kurallara uyanlari Jupiter uzerinden alir,
-kademeli cikis + trailing stop ile otomatik satar. Paper (simulasyon) ve canli mod ayni mantikla calisir. Her sey karanlik temali web panelden
-gercek zamanli izlenir.
+pump.fun / Solana memecoin botu. **Copy trading + curve-progress hibrit.**
 
-> **Uyari:** Bu bot gercek para ile islem yapar. Memecoin alim satimi yuksek risklidir;
-> yatirdiginin tamamini kaybedebilirsin. Once PAPER modunda (asagida) test et.
+Fresh-launch sniping stratejisi 19 Agustos 2026 calistirmasindan sonra arsive
+alindi (`backend/legacy_sniper.py`): `analyze_delay=90s` + `max_mcap=$25k` +
+`max_curve_sol=30` ucluisu ters secim yapiyordu - 90. saniyede hala bandin
+icinde olan coin, tanimi geregi ilgi gormemis coindi. Ayrintili teshis:
+[`ANALIZ-BRIEF.md`](ANALIZ-BRIEF.md).
+
+## Uc katman
+
+| Katman | Dosya | Ne yapar |
+|---|---|---|
+| 1 - Cuzdan skorlama | `backend/wallet_scorer.py` | Aday cuzdanlarin 30 gunluk gecmisini FIFO ile yeniden kurar, bot/farmer'lari eler, skorlar |
+| 2 - Canli kopyalama | `backend/copy_engine.py` | Takipteki cuzdanlari websocket'ten dinler, kapilardan gecen alimlari kopyalar, cikisi lidere devreder |
+| 3 - Curve momentum | `backend/pumpfun.py` | Bonding curve ilerlemesine gore pozisyon boyutunu buyutur ya da migration anini atlar |
+
+## Hizli baslangic
+
+```bash
+pip install -r requirements.txt
+cp .env.example .env          # HELIUS_API_KEY zorunlu
+python backend/main.py        # PORT env ile port secilir
+```
+
+**1. Aday cuzdanlari topla.** `wallets_candidates.json` dosyasini doldur:
+
+```json
+[{"address": "...", "source": "gmgn", "note": "neden ekledigin"}]
+```
+
+**2. Skorla.** Panelden `SKORLA`, ya da:
+
+```bash
+python -m backend.wallet_scorer            # tum adaylar
+python -m backend.wallet_scorer --only ADRES
+python -m backend.wallet_scorer --no-ai    # AI siniflandirmayi atla
+```
+
+Batch uzun surer (cuzdan basina dakikalar) - RPC_RPS=9 ile sinirli, bir gecede
+calisabilir. 429 gelirse bekleyip devam eder, cokmez.
+
+**3. Takibe al.** Panelde skorlu listeden checkbox. Kopya motoru abonelikleri
+aninda tazeler.
+
+## Bot/farmer eleme kurallari
+
+| Kural | Sonuc |
+|---|---|
+| medyan giris gecikmesi < 3sn | MEV/sniper botu -> ELE |
+| medyan tutus < 30sn **ve** > 500 trade | scalper script -> ELE |
+| alim boyutu varyasyon katsayisi < 0.05 | script -> ELE |
+| < 15 kapanmis trade (30g) | ornekle yetersiz -> ELE |
+| win rate > %85 | **SUPHELI** - elenmez, panelde kirmizi |
+
+## Cikis stratejisi
+
+**Kopya pozisyonlari** (`source_wallet` dolu) cikisi lidere devreder:
+
+- Lider pozisyonunun >=%50'sini satarsa -> biz tamamen cikariz
+- <%50 satarsa -> ayni oranda satariz
+- **Hard stop** -%35 ve **zaman stopu** (45dk'da PnL < +%10) sadece lider
+  sessiz kalirsa devreye giren guvenlik aglaridir
+
+Tier semasi kopya modunda kapalidir - cikisi kopyalamak isin ozu.
+
+**Legacy pozisyonlari** kademeli semayi korur (2x/5x/10x her birinde %25),
+ama trailing artik tier1'e degil **`trailing_arm_x` (1.40x)** degerine
+silahlanir. Eski davranista 1x-2x arasi olu bolgeydi: 1.83x'e cikan bir coin
+hic kar kilitlemeden -%30 stop loss'a donebiliyordu.
+
+## Olcum
+
+Her kopya sinyali - kopyalanan da atlanan da - `copy_signals` tablosuna
+gerekcesiyle yazilir:
+
+```
+GET /api/signals/stats     ->  {"actions": {...}, "skip_reasons": {...}}
+```
+
+Eski botun en buyuk hatasi red gerekcelerini kaydetmemesiydi; hangi kuralin
+kac coini eledigi hic olculemedi. Artik her karar izlenebilir.
+
+## Muhasebe
+
+PnL, giris sabit ucreti dahil TOPLAM cikan SOL'e (`entry_cost_sol`) gore
+olculur. Onceki surumde `amount_sol` kullaniliyordu ve giris priority+network
+ucreti PnL'e hic girmiyordu - 19 Agustos'ta zarar %31 dusuk raporlandi.
+
+`copy_size_sol` varsayilani **0.1 SOL**: 0.01'de sabit priority fee tek basina
+%10, gidis-donus toplam maliyet %22 idi, yani basabas icin ~%25 fiyat artisi
+gerekiyordu.
+
+## Testler
+
+```bash
+python -m pytest tests/ -q      # ya da: python tests/test_fifo.py
+```
+
+FIFO trade eslestirme ve transaction cozumleme saf fonksiyonlardir, ag
+gerektirmez.
+
+## Guvenlik
+
+- Varsayilan **PAPER** modu. LIVE'a gecis gecerli `WALLET_PRIVATE_KEY`
+  olmadan API tarafindan reddedilir.
+- `ANTHROPIC_API_KEY` opsiyoneldir; yoksa AI siniflandirma sessizce atlanir ve
+  skorlama tamamen metrik tabanli calisir.
+
+---
+
+# Onceki surum notlari
 
 ## Kurulum
 

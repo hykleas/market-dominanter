@@ -28,13 +28,22 @@ POSITION_MIGRATIONS = {
     "realized_sol": "REAL DEFAULT 0",
     "fees_sol": "REAL DEFAULT 0",
     "is_paper": "INTEGER DEFAULT 0",
+    # Gercek giris maliyeti = amount_sol + giris sabit ucreti. amount_sol tek
+    # basina kullanildigi surece PnL, giris priority+network fee'sini atliyordu
+    # (19 Agustos calistirmasinda zarar %31 dusuk raporlandi).
+    "entry_cost_sol": "REAL DEFAULT 0",
+    "source_wallet": "TEXT",
+    "curve_progress_at_entry": "REAL",
 }
 TRADE_MIGRATIONS = {
     "tier": "TEXT",
     "sold_percent": "REAL DEFAULT 100",
     "fees_sol": "REAL DEFAULT 0",
     "is_paper": "INTEGER DEFAULT 0",
+    "source_wallet": "TEXT",
 }
+# `wallets` ilk surumde yoktu; sema buyudukce buradan genisletilir.
+WALLET_MIGRATIONS: Dict[str, str] = {}
 
 
 def _connect() -> sqlite3.Connection:
@@ -82,12 +91,48 @@ def init_db() -> None:
                 entry_time   REAL,
                 exit_time    REAL
             );
+            CREATE TABLE IF NOT EXISTS wallets (
+                address            TEXT PRIMARY KEY,
+                source             TEXT,
+                note               TEXT,
+                score              REAL,
+                classification     TEXT,
+                ai_confidence      REAL,
+                ai_reasoning       TEXT,
+                win_rate           REAL,
+                total_pnl_sol      REAL,
+                median_hold_seconds REAL,
+                median_entry_delay REAL,
+                trade_count_30d    INTEGER,
+                rug_hit_rate       REAL,
+                is_followed        INTEGER DEFAULT 0,
+                is_suspicious      INTEGER DEFAULT 0,
+                last_scored_at     TEXT
+            );
+            CREATE TABLE IF NOT EXISTS copy_signals (
+                id                INTEGER PRIMARY KEY AUTOINCREMENT,
+                wallet            TEXT,
+                mint              TEXT,
+                side              TEXT,
+                wallet_amount_sol REAL,
+                detected_at       TEXT,
+                signal_age_ms     INTEGER,
+                action            TEXT,
+                skip_reason       TEXT,
+                position_id       INTEGER
+            );
             CREATE INDEX IF NOT EXISTS idx_positions_status ON positions(status);
             CREATE INDEX IF NOT EXISTS idx_trades_exit ON trades(exit_time);
+            CREATE INDEX IF NOT EXISTS idx_signals_id ON copy_signals(id DESC);
+            CREATE INDEX IF NOT EXISTS idx_wallets_followed ON wallets(is_followed);
             """
         )
         _migrate(conn, "positions", POSITION_MIGRATIONS)
         _migrate(conn, "trades", TRADE_MIGRATIONS)
+        _migrate(conn, "wallets", WALLET_MIGRATIONS)
+        # Eski satirlarda entry_cost_sol=0 kalir; asagidaki _entry_cost() bunu
+        # amount_sol'e dusurur, yani gecmis veri bozulmaz (sadece eski, eksik
+        # muhasebesiyle kalir).
         conn.commit()
     log.info("Veritabani hazir: %s", DB_PATH)
 
@@ -97,21 +142,38 @@ def init_db() -> None:
 # --------------------------------------------------------------------------- #
 def add_position(mint: str, name: str, entry_price: float, amount_token: float,
                  amount_sol: float, is_paper: bool = False, fees_sol: float = 0.0,
-                 trailing_pct: float = 30.0) -> int:
+                 trailing_pct: float = 30.0, entry_cost_sol: Optional[float] = None,
+                 source_wallet: Optional[str] = None,
+                 curve_progress: Optional[float] = None) -> int:
+    """Open a position.
+
+    `entry_cost_sol` is the TOTAL SOL that left the wallet (position size plus
+    the fixed network/priority fee). PnL is measured against this, not against
+    `amount_sol` - otherwise every trade under-reports its loss by the entry fee.
+    """
     trailing = entry_price * (1.0 - trailing_pct / 100.0) if entry_price > 0 else 0.0
+    cost = float(entry_cost_sol if entry_cost_sol is not None else amount_sol)
     with _lock:
         conn = _connect()
         cur = conn.execute(
             """INSERT INTO positions (mint, name, entry_price, current_price, amount_token,
                                       amount_sol, timestamp, status, ath_price,
                                       trailing_stop_price, remaining_token, realized_sol,
-                                      fees_sol, is_paper, total_sold_percent)
-               VALUES (?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, 0, ?, ?, 0)""",
+                                      fees_sol, is_paper, total_sold_percent,
+                                      entry_cost_sol, source_wallet, curve_progress_at_entry)
+               VALUES (?, ?, ?, ?, ?, ?, ?, 'open', ?, ?, ?, 0, ?, ?, 0, ?, ?, ?)""",
             (mint, name, entry_price, entry_price, amount_token, amount_sol, time.time(),
-             entry_price, trailing, amount_token, fees_sol, 1 if is_paper else 0),
+             entry_price, trailing, amount_token, fees_sol, 1 if is_paper else 0,
+             cost, source_wallet, curve_progress),
         )
         conn.commit()
         return int(cur.lastrowid)
+
+
+def _entry_cost(pos: Dict[str, Any]) -> float:
+    """Total SOL outlay for a position, with a fallback for pre-migration rows."""
+    cost = float(pos.get("entry_cost_sol") or 0.0)
+    return cost if cost > 0 else float(pos.get("amount_sol") or 0.0)
 
 
 def get_open_positions() -> List[Dict[str, Any]]:
@@ -166,12 +228,13 @@ def record_partial_sell(position_id: int, percent: float, exit_price: float,
             return None
         pos = dict(row)
         entry_price = float(pos.get("entry_price") or 0.0)
-        entry_sol = float(pos.get("amount_sol") or 0.0)
         percent = max(0.0, min(float(percent), 100.0 - float(pos.get("total_sold_percent") or 0.0)))
         if percent <= 0:
             return None
 
-        cost_portion = entry_sol * percent / 100.0
+        # Maliyet payi giris ucretini de icerir; `sol_received` cikis ucretinden
+        # arindirilmis geldigi icin PnL artik her iki yonun ucretini de tasiyor.
+        cost_portion = _entry_cost(pos) * percent / 100.0
         pnl_sol = sol_received - cost_portion
         pnl_percent = ((exit_price - entry_price) / entry_price * 100.0) if entry_price > 0 else 0.0
         now = time.time()
@@ -194,11 +257,11 @@ def record_partial_sell(position_id: int, percent: float, exit_price: float,
         cur = conn.execute(
             """INSERT INTO trades (mint, name, entry_price, exit_price, amount_sol, pnl_sol,
                                    pnl_percent, entry_time, exit_time, tier, sold_percent,
-                                   fees_sol, is_paper)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                                   fees_sol, is_paper, source_wallet)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
             (pos["mint"], pos["name"], entry_price, exit_price, cost_portion, pnl_sol,
              pnl_percent, pos["timestamp"], now, tier, percent, fees_sol,
-             int(pos.get("is_paper") or 0)),
+             int(pos.get("is_paper") or 0), pos.get("source_wallet")),
         )
         conn.commit()
         trade_id = int(cur.lastrowid)
@@ -219,6 +282,7 @@ def record_partial_sell(position_id: int, percent: float, exit_price: float,
         "sold_percent": percent,
         "fees_sol": fees_sol,
         "is_paper": int(pos.get("is_paper") or 0),
+        "source_wallet": pos.get("source_wallet"),
         "closed": closed,
         "total_sold_percent": total_sold,
     }
@@ -260,6 +324,118 @@ def stats(is_paper: Optional[bool] = None) -> Dict[str, Any]:
         "total_fees_sol": float(row["fees"]),
         "wins": int(row["wins"]),
         "win_rate": (int(row["wins"]) / total * 100.0) if total else 0.0,
+    }
+
+
+# --------------------------------------------------------------------------- #
+# Wallets (KATMAN 1)
+# --------------------------------------------------------------------------- #
+WALLET_FIELDS = ("source", "note", "score", "classification", "ai_confidence", "ai_reasoning",
+                 "win_rate", "total_pnl_sol", "median_hold_seconds", "median_entry_delay",
+                 "trade_count_30d", "rug_hit_rate", "is_suspicious", "last_scored_at")
+
+
+def upsert_wallet(address: str, **fields: Any) -> None:
+    """Insert or update a scored wallet. `is_followed` is deliberately NOT
+    touched here: re-scoring must never silently un-follow a wallet."""
+    data = {k: v for k, v in fields.items() if k in WALLET_FIELDS}
+    with _lock:
+        conn = _connect()
+        conn.execute("INSERT OR IGNORE INTO wallets (address) VALUES (?)", (address,))
+        if data:
+            assignments = ", ".join("%s=?" % k for k in data)
+            conn.execute("UPDATE wallets SET %s WHERE address=?" % assignments,
+                         list(data.values()) + [address])
+        conn.commit()
+
+
+def get_wallets(followed_only: bool = False) -> List[Dict[str, Any]]:
+    sql = "SELECT * FROM wallets"
+    if followed_only:
+        sql += " WHERE is_followed=1"
+    sql += " ORDER BY COALESCE(score, -1) DESC, address"
+    with _lock:
+        conn = _connect()
+        rows = conn.execute(sql).fetchall()
+    return [dict(r) for r in rows]
+
+
+def get_wallet(address: str) -> Optional[Dict[str, Any]]:
+    with _lock:
+        conn = _connect()
+        row = conn.execute("SELECT * FROM wallets WHERE address=?", (address,)).fetchone()
+    return dict(row) if row else None
+
+
+def set_wallet_followed(address: str, followed: bool) -> bool:
+    with _lock:
+        conn = _connect()
+        cur = conn.execute("UPDATE wallets SET is_followed=? WHERE address=?",
+                           (1 if followed else 0, address))
+        conn.commit()
+    return cur.rowcount > 0
+
+
+def delete_wallet(address: str) -> bool:
+    with _lock:
+        conn = _connect()
+        cur = conn.execute("DELETE FROM wallets WHERE address=?", (address,))
+        conn.commit()
+    return cur.rowcount > 0
+
+
+# --------------------------------------------------------------------------- #
+# Copy signals (KATMAN 2)
+# --------------------------------------------------------------------------- #
+def add_copy_signal(wallet: str, mint: str, side: str, wallet_amount_sol: float,
+                    signal_age_ms: int, action: str, skip_reason: Optional[str] = None,
+                    position_id: Optional[int] = None) -> Dict[str, Any]:
+    """Record one observed leader trade - copied or skipped, no exceptions.
+
+    The old sniper published its reject reasons to the panel and persisted none
+    of them, so nobody could ever measure which rule was doing the damage. Every
+    decision this engine makes lands here instead.
+    """
+    detected_at = datetime.now().isoformat(timespec="seconds")
+    with _lock:
+        conn = _connect()
+        cur = conn.execute(
+            """INSERT INTO copy_signals (wallet, mint, side, wallet_amount_sol, detected_at,
+                                         signal_age_ms, action, skip_reason, position_id)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+            (wallet, mint, side, wallet_amount_sol, detected_at, int(signal_age_ms),
+             action, skip_reason, position_id),
+        )
+        conn.commit()
+        signal_id = int(cur.lastrowid)
+    return {
+        "id": signal_id, "wallet": wallet, "mint": mint, "side": side,
+        "wallet_amount_sol": wallet_amount_sol, "detected_at": detected_at,
+        "signal_age_ms": int(signal_age_ms), "action": action,
+        "skip_reason": skip_reason, "position_id": position_id,
+    }
+
+
+def get_copy_signals(limit: int = 200) -> List[Dict[str, Any]]:
+    with _lock:
+        conn = _connect()
+        rows = conn.execute("SELECT * FROM copy_signals ORDER BY id DESC LIMIT ?",
+                            (limit,)).fetchall()
+    return [dict(r) for r in rows]
+
+
+def copy_signal_stats() -> Dict[str, Any]:
+    """Counts per action and per skip reason - the measurement the old bot lacked."""
+    with _lock:
+        conn = _connect()
+        actions = conn.execute(
+            "SELECT action, COUNT(*) AS n FROM copy_signals GROUP BY action").fetchall()
+        reasons = conn.execute(
+            "SELECT skip_reason, COUNT(*) AS n FROM copy_signals"
+            " WHERE skip_reason IS NOT NULL GROUP BY skip_reason ORDER BY n DESC").fetchall()
+    return {
+        "actions": {r["action"]: int(r["n"]) for r in actions},
+        "skip_reasons": {r["skip_reason"]: int(r["n"]) for r in reasons},
     }
 
 

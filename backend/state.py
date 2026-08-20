@@ -21,6 +21,38 @@ SETTINGS_FILE = ROOT / "settings.json"
 
 @dataclass
 class Settings:
+    # Hangi strateji trade tetikler:
+    #   "copy"   -> copy_engine (takip edilen cuzdanlari kopyala)  [varsayilan]
+    #   "legacy" -> legacy_sniper (fresh-launch sniping, arsiv)
+    # legacy_sniper her zaman dinler ve akisi panele basar; sadece "legacy"
+    # modunda alim tetikler.
+    strategy_mode: str = "copy"
+
+    # --- KATMAN 2: canli kopyalama ---
+    copy_size_sol: float = 0.1          # 0.01'de sabit fee gidis-donusu %22 yiyordu
+    min_leader_buy_sol: float = 0.5     # bunun altindaki lider alimi = toz
+    max_signal_age_sec: float = 8.0     # tespit -> emir arasi tavan
+    min_liquidity_usd: float = 10_000.0
+    min_curve_sol_for_copy: float = 10.0
+    hard_stop_pct: float = 35.0         # lider satmazsa diye guvenlik agi
+    time_stop_minutes: float = 45.0
+    time_stop_min_pnl: float = 10.0     # bu PnL'in altindaysa zaman stopu calisir
+    # Lider pozisyonunun bu yuzdesinden fazlasini satarsa biz tamamen cikariz.
+    leader_sell_full_threshold: float = 50.0
+
+    # --- KATMAN 3: curve-progress sinyal guclendirici ---
+    curve_boost_min: float = 0.60
+    curve_boost_max: float = 0.90
+    curve_boost_mult: float = 1.5
+    curve_skip_above: float = 0.95      # migration ani alimi = exit liquidity riski
+    # pump.fun migration esigi degisebilir; koda gomulmuyor.
+    curve_graduation_sol: float = 85.0
+
+    # --- KATMAN 1: cuzdan skorlama ---
+    scorer_lookback_days: int = 30
+    scorer_min_trades: int = 15         # bunun altinda ornekle yetersiz -> ELE
+    scorer_max_signatures: int = 3000   # cuzdan basina imza tavani (RPS butcesi)
+
     # Esikler 19 Agustos 2026 canli olcumlerine gore kalibre edildi; bundler /
     # sniper / dev artik TOPLAM arza, top10 ise curve disi dolasima gore olculuyor.
     auto_buy_sol: float = 0.01
@@ -52,6 +84,14 @@ class Settings:
     tier2_pct: float = 25.0
     tier3_pct: float = 25.0
     trailing_stop: float = 30.0
+    # Trailing artik tier1'e (2x) degil buna silahlanir. 19 Agustos'ta "derp"
+    # 1.83x'e cikip trailing hic devreye girmeden -%42.7 stop loss'a dondu:
+    # 1x-2x arasi tam bir olu bolgeydi.
+    trailing_arm_x: float = 1.40
+
+    # Acik pozisyonlarin fiyat dongusu. pump.fun hizinda 10sn cok uzundu:
+    # -%30 stop loss -%42.7'de dolduruluyordu.
+    price_loop_sec: float = 3.0
 
     # --- paper trading ---
     paper_trading: bool = True
@@ -92,6 +132,8 @@ class Settings:
                         setattr(self, key, value.strip().lower() in ("1", "true", "yes", "on"))
                     else:
                         setattr(self, key, bool(value))
+                elif isinstance(current, str):
+                    setattr(self, key, str(value).strip())
                 elif isinstance(current, int):
                     setattr(self, key, int(value))
                 else:
@@ -145,9 +187,13 @@ class EventBus:
 @dataclass
 class BotState:
     running: bool = False
-    connected: bool = False
+    connected: bool = False          # legacy_sniper websocket
     coins_seen: int = 0
     coins_bought: int = 0
+    copy_connected: bool = False     # copy_engine websocket
+    followed_wallets: int = 0
+    signals_seen: int = 0
+    signals_copied: int = 0
 
 
 settings = Settings.load()

@@ -20,11 +20,13 @@ ROOT = Path(__file__).resolve().parent.parent
 load_dotenv(ROOT / ".env")
 
 import analyzer  # noqa: E402
-import bot  # noqa: E402
+import copy_engine  # noqa: E402
 import database as db  # noqa: E402
+import legacy_sniper as bot  # noqa: E402
 import rpc  # noqa: E402
 import state  # noqa: E402
 import trader  # noqa: E402
+import wallet_scorer  # noqa: E402
 
 logging.basicConfig(
     level=logging.INFO,
@@ -51,8 +53,10 @@ async def lifespan(app: FastAPI):
     if trader.is_paper():
         state.bus.log("PAPER modu aktif - gercek islem yapilmayacak", "warn")
         asyncio.create_task(trader.ensure_paper_funded())
-    for coro in (bot.listen_loop(), trader.monitor_loop(), trader.balance_loop()):
+    for coro in (bot.listen_loop(), copy_engine.listen_loop(),
+                 trader.monitor_loop(), trader.balance_loop()):
         _background.append(asyncio.create_task(coro))
+    state.bus.log("Strateji modu: %s" % state.settings.strategy_mode.upper(), "info")
     state.bus.log("Sunucu hazir", "success")
     try:
         yield
@@ -158,6 +162,74 @@ async def api_trades():
     return db.get_trades()
 
 
+# --------------------------------------------------------------------------- #
+# Wallets (KATMAN 1) + copy signals (KATMAN 2)
+# --------------------------------------------------------------------------- #
+_scoring_lock = asyncio.Lock()
+
+
+@app.get("/api/wallets")
+async def api_wallets():
+    return db.get_wallets()
+
+
+@app.post("/api/wallets/score")
+async def api_wallets_score(payload: dict | None = None):
+    """Kick off a scoring batch. It can take a long time, so it runs in the
+    background and streams progress over the websocket."""
+    if _scoring_lock.locked():
+        return JSONResponse({"error": "Skorlama zaten calisiyor"}, status_code=409)
+
+    body = payload or {}
+    use_ai = bool(body.get("use_ai", True))
+    only = body.get("address")
+    candidates = [{"address": only, "source": "panel", "note": ""}] if only else None
+
+    async def run():
+        async with _scoring_lock:
+            try:
+                await wallet_scorer.score_wallets(candidates, use_ai=use_ai)
+            except Exception as exc:
+                log.error("Skorlama hatasi: %s", exc)
+                state.bus.log("Skorlama hatasi: %s" % type(exc).__name__, "error")
+
+    _background.append(asyncio.create_task(run()))
+    return {"started": True}
+
+
+@app.post("/api/wallets/{address}/follow")
+async def api_wallet_follow(address: str, payload: dict | None = None):
+    follow = bool((payload or {}).get("followed", True))
+    if not db.set_wallet_followed(address, follow):
+        return JSONResponse({"error": "Cuzdan bulunamadi"}, status_code=404)
+    # Takip listesi degisti: kopya motoru aboneliklerini tazelesin.
+    copy_engine.request_reload()
+    state.bus.log("%s %s" % (address[:10], "TAKIBE ALINDI" if follow else "takipten cikarildi"),
+                  "success" if follow else "warn")
+    state.bus.publish("wallets", db.get_wallets())
+    return {"address": address, "is_followed": 1 if follow else 0}
+
+
+@app.delete("/api/wallets/{address}")
+async def api_wallet_delete(address: str):
+    ok = db.delete_wallet(address)
+    if ok:
+        copy_engine.request_reload()
+        state.bus.publish("wallets", db.get_wallets())
+    return JSONResponse({"ok": ok}, status_code=200 if ok else 404)
+
+
+@app.get("/api/signals")
+async def api_signals(limit: int = 200):
+    return db.get_copy_signals(limit)
+
+
+@app.get("/api/signals/stats")
+async def api_signal_stats():
+    """Hangi kapinin kac sinyali eledigi. Eski botta olmayan olcum."""
+    return db.copy_signal_stats()
+
+
 @app.post("/api/positions/{position_id}/sell")
 async def api_sell(position_id: int, payload: dict | None = None):
     """Manual exit. Body {"percent": 50} sells half; no body sells everything."""
@@ -182,6 +254,8 @@ async def websocket_endpoint(ws: WebSocket):
             "settings": state.settings.as_dict(),
             "positions": [trader.position_payload(p) for p in db.get_open_positions()],
             "trades": db.get_trades(50),
+            "wallets": db.get_wallets(),
+            "signals": db.get_copy_signals(50),
             "recent": state.bus.recent(),
             "sol_balance": await trader.wallet_balance(),
             "paper_wallet": trader.paper_wallet(),

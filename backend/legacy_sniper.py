@@ -1,5 +1,16 @@
-"""Launch detection: subscribe to pump.fun program logs over the Helius websocket,
-pull the new mint out of each create transaction, analyze it, buy on PASS.
+"""ARSIV - fresh-launch sniping (eski varsayilan strateji).
+
+19 Agustos 2026 calistirmasi bu stratejinin negatif beklenen degerli oldugunu
+gosterdi: `analyze_delay=90s` + `max_mcap=$25k` + `max_curve_sol=30` ucluisu
+ters secim yapiyor. 90. saniyede hala $25k altinda olan coin, tanimi geregi o
+90 saniyede ilgi gormemis coindir; gercek runner'lar bandi coktan asip
+reddedilmis olur. Aldigi en iyi coinin ZIRVESI $14,540 mcap'ti - filtrenin
+kendi ust sinirinin bile altinda.
+
+Kod silinmedi, calisir halde duruyor: websocket dinleyicisi hala akisi panele
+basar ve `copy_engine` ayni baglanti desenini yeniden kullanir. Ama ARTIK TRADE
+TETIKLEMEZ - alim sadece `settings.strategy_mode == "legacy"` iken yapilir.
+Varsayilan mod "copy".
 """
 from __future__ import annotations
 
@@ -106,6 +117,11 @@ async def _handle_new_mint(mint: str, creator: Optional[str],
             elif not state.bot_state.running:
                 row["result"] = "REJECTED"
                 row["reason"] = "bot durduruldu"
+            elif state.settings.strategy_mode != "legacy":
+                # Arsiv modu: analiz akisi panelde gorunmeye devam eder ama
+                # alim tetiklenmez.
+                row["result"] = "REJECTED"
+                row["reason"] = "legacy sniper arsivde (strategy_mode=%s)" % state.settings.strategy_mode
             else:
                 pos_id = await trader.buy(mint, metrics.name, price_hint=metrics.price_usd,
                                           liquidity_hint=metrics.liquidity_usd)
@@ -206,4 +222,9 @@ def status() -> Dict[str, Any]:
         "paper": trader.is_paper(),
         "can_go_live": trader.can_go_live(),
         "wallet": trader.wallet_pubkey(),
+        "strategy_mode": state.settings.strategy_mode,
+        "copy_connected": state.bot_state.copy_connected,
+        "followed_wallets": state.bot_state.followed_wallets,
+        "signals_seen": state.bot_state.signals_seen,
+        "signals_copied": state.bot_state.signals_copied,
     }

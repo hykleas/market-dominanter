@@ -76,6 +76,28 @@ class Curve:
             return None
         return price * self.supply_ui
 
+    @property
+    def progress(self) -> float:
+        """How far the curve is towards graduating, as 0..1.
+
+        The graduation threshold lives in settings (`curve_graduation_sol`), not
+        in this file: pump.fun has moved it before and a hard-coded constant
+        would silently mis-price every boost/skip decision when it moves again.
+        """
+        if self.complete:
+            return 1.0
+        target = float(state.settings.curve_graduation_sol)
+        if target <= 0:
+            return 0.0
+        return max(0.0, min(self.sol_in_curve / target, 1.0))
+
+
+async def curve_progress(mint: str) -> Optional[float]:
+    """0..1 curve progress for a mint, or None when it is not a curve token
+    (already migrated to a DEX, or not a pump.fun mint at all)."""
+    curve = await read_curve(mint)
+    return curve.progress if curve else None
+
 
 def curve_address(mint: str) -> Optional[str]:
     """PDA of the bonding curve: ["bonding-curve", mint] under the pump.fun program."""

@@ -95,7 +95,7 @@
 </head>
 <body>
 <header>
-  <div class="logo">market<span>-fucker</span></div>
+  <div class="logo">market<span>-dominanter</span></div>
 
   <div class="switch">
     <div class="track" id="modeTrack" title="Paper / Live"><div class="knob"></div></div>
@@ -110,6 +110,8 @@
   <button class="sm" id="resetPaper">PAPER SIFIRLA</button>
 
   <div class="chip"><span class="dot bad" id="wsdot"></span><span id="wstext">baglaniyor</span></div>
+  <div class="chip"><span class="dot bad" id="copydot"></span><span id="copytext">kopya kapali</span></div>
+  <div class="chip"><b>MOD</b><span id="modeStrategy">COPY</span></div>
   <div class="badge off" id="status">STOPPED</div>
   <div class="spacer"></div>
   <button class="primary" id="toggle">BOTU BASLAT</button>
@@ -122,7 +124,38 @@
       <div class="body">
         <form id="settings">
           <div class="grid">
-            <div class="sec">Filtre</div>
+            <div class="sec">Strateji</div>
+            <div style="grid-column:1/-1"><label>Mod</label>
+              <select name="strategy_mode">
+                <option value="copy">COPY - takip edilen cuzdanlari kopyala</option>
+                <option value="legacy">LEGACY - fresh launch sniper (arsiv)</option>
+              </select></div>
+
+            <div class="sec">Kopya (KATMAN 2)</div>
+            <div><label>Kopya boyutu (SOL)</label><input name="copy_size_sol" type="number" step="0.01" value="0.1"></div>
+            <div><label>Min lider alimi (SOL)</label><input name="min_leader_buy_sol" type="number" step="0.1" value="0.5"></div>
+            <div><label>Max sinyal yasi (sn)</label><input name="max_signal_age_sec" type="number" step="1" value="8"></div>
+            <div><label>Min likidite $</label><input name="min_liquidity_usd" type="number" step="500" value="10000"></div>
+            <div><label>Min curve SOL (kopya)</label><input name="min_curve_sol_for_copy" type="number" step="0.5" value="10"></div>
+            <div><label>Hard stop %</label><input name="hard_stop_pct" type="number" step="1" value="35"></div>
+            <div><label>Zaman stopu (dk)</label><input name="time_stop_minutes" type="number" step="5" value="45"></div>
+            <div><label>Zaman stopu min PnL %</label><input name="time_stop_min_pnl" type="number" step="1" value="10"></div>
+            <div><label>Lider tam cikis esigi %</label><input name="leader_sell_full_threshold" type="number" step="5" value="50"></div>
+            <div><label>Fiyat dongusu (sn)</label><input name="price_loop_sec" type="number" step="1" value="3"></div>
+
+            <div class="sec">Curve momentum (KATMAN 3)</div>
+            <div><label>Boost alt sinir</label><input name="curve_boost_min" type="number" step="0.05" value="0.6"></div>
+            <div><label>Boost ust sinir</label><input name="curve_boost_max" type="number" step="0.05" value="0.9"></div>
+            <div><label>Boost carpani</label><input name="curve_boost_mult" type="number" step="0.1" value="1.5"></div>
+            <div><label>Ustunde atla</label><input name="curve_skip_above" type="number" step="0.01" value="0.95"></div>
+            <div><label>Graduation SOL</label><input name="curve_graduation_sol" type="number" step="1" value="85"></div>
+
+            <div class="sec">Skorlama (KATMAN 1)</div>
+            <div><label>Geriye bakis (gun)</label><input name="scorer_lookback_days" type="number" step="1" value="30"></div>
+            <div><label>Min trade sayisi</label><input name="scorer_min_trades" type="number" step="1" value="15"></div>
+            <div><label>Max imza / cuzdan</label><input name="scorer_max_signatures" type="number" step="100" value="3000"></div>
+
+            <div class="sec">Legacy sniper filtresi (arsiv)</div>
             <div><label>Alim (SOL)</label><input name="auto_buy_sol" type="number" step="0.001" value="0.01"></div>
             <div><label>Max bundler %</label><input name="max_bundler" type="number" step="0.1" value="5"></div>
             <div><label>Max sniper %</label><input name="max_sniper" type="number" step="0.1" value="10"></div>
@@ -143,6 +176,7 @@
             <div><label>Tier 3 (x)</label><input name="tier3_x" type="number" step="0.1" value="10"></div>
             <div><label>Tier 3 sat %</label><input name="tier3_pct" type="number" step="1" value="25"></div>
             <div><label>Trailing stop %</label><input name="trailing_stop" type="number" step="1" value="30"></div>
+            <div><label>Trailing silahlanma (x)</label><input name="trailing_arm_x" type="number" step="0.1" value="1.4"></div>
             <div><label>Stop loss %</label><input name="stop_loss" type="number" step="1" value="30"></div>
 
             <div class="sec">Paper cuzdan</div>
@@ -176,7 +210,33 @@
 
   <div class="stack">
     <section class="card">
-      <h2>Canli Coin Akisi <span class="count" id="feed-count">0</span></h2>
+      <h2>Takip Edilen Cuzdanlar <span class="count" id="wallet-count">0</span>
+        <button class="sm" id="scoreBtn" style="float:right">SKORLA</button></h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>takip</th><th>cuzdan</th><th>skor</th><th>sinif</th><th>win %</th>
+            <th>PnL SOL</th><th>trade</th><th>tutus</th><th>gecikme</th><th>rug %</th><th></th></tr></thead>
+          <tbody id="wallets"><tr><td colspan="11" class="empty">
+            wallets_candidates.json doldurup SKORLA'ya basin</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Canli Sinyaller <span class="count" id="signal-count">0</span></h2>
+      <div class="scroll">
+        <table>
+          <thead><tr><th>saat</th><th>lider</th><th>yon</th><th>coin</th><th>lider SOL</th>
+            <th>yas</th><th>karar</th></tr></thead>
+          <tbody id="signals"><tr><td colspan="7" class="empty">
+            Takipteki bir cuzdan islem yapinca burada gorunur</td></tr></tbody>
+        </table>
+      </div>
+    </section>
+
+    <section class="card">
+      <h2>Canli Coin Akisi <span class="count" id="feed-count">0</span>
+        <span class="reason" style="float:right">legacy sniper - arsiv</span></h2>
       <div class="scroll">
         <table>
           <thead><tr><th>saat</th><th>isim</th><th>mcap</th><th>curve SOL</th><th>bundler</th><th>sniper</th>
@@ -190,9 +250,9 @@
       <h2>Acik Pozisyonlar <span class="count" id="pos-count">0</span></h2>
       <div class="scroll">
         <table>
-          <thead><tr><th>coin</th><th>giris</th><th>guncel</th><th>ATH</th><th>PnL %</th>
+          <thead><tr><th>coin</th><th>kaynak</th><th>giris</th><th>guncel</th><th>ATH</th><th>PnL %</th>
             <th>kademe</th><th>trailing</th><th>kalan</th><th>yas</th><th></th></tr></thead>
-          <tbody id="positions"><tr><td colspan="10" class="empty">Acik pozisyon yok</td></tr></tbody>
+          <tbody id="positions"><tr><td colspan="11" class="empty">Acik pozisyon yok</td></tr></tbody>
         </table>
       </div>
     </section>
@@ -213,7 +273,7 @@
 <script>
 const $ = (id) => document.getElementById(id);
 const app = { running:false, paper:true, canLive:false, solUsd:0,
-              positions:new Map(), trades:[], feed:[] };
+              positions:new Map(), trades:[], feed:[], wallets:[], signals:[] };
 
 const fmtUsd = (v) => (v===null||v===undefined||isNaN(v)) ? "-" :
   (v >= 1 ? "$" + Number(v).toLocaleString(undefined,{maximumFractionDigits:0})
@@ -227,7 +287,55 @@ const age = (ts) => { const s = Math.max(0, Date.now()/1000 - (ts||0));
   return s < 60 ? Math.floor(s)+"s" : s < 3600 ? Math.floor(s/60)+"d" : Math.floor(s/3600)+"sa"; };
 const cls = (v) => Number(v) >= 0 ? "pos" : "neg";
 
+const fmtDur = (s) => (s===null||s===undefined) ? "-" :
+  (s < 90 ? Math.round(s)+"s" : s < 5400 ? Math.round(s/60)+"d" : (s/3600).toFixed(1)+"sa");
+
 /* ---------- rendering ---------- */
+function renderWallets(){
+  const rows = app.wallets || [];
+  $("wallet-count").textContent = rows.filter(w => w.is_followed).length + "/" + rows.length;
+  $("wallets").innerHTML = rows.length ? rows.map(w => {
+    // Elenmis cuzdanin skoru null gelir; supheli olan kirmizi isaretlenir ama
+    // otomatik elenmez - takip karari kullanicinin.
+    const rejected = w.score === null || w.score === undefined;
+    const klass = w.is_suspicious ? "neg" : (rejected ? "muted" : "");
+    return `<tr class="${rejected ? "dim" : ""}">
+      <td><input type="checkbox" ${w.is_followed ? "checked" : ""}
+           onchange="followWallet('${w.address}', this.checked)"></td>
+      <td title="${w.address}${w.note ? " — " + w.note : ""}">${short(w.address)}
+          <span class="muted">${w.source||""}</span></td>
+      <td>${rejected ? "-" : Number(w.score).toFixed(3)}</td>
+      <td class="${klass}" title="${(w.ai_reasoning||"").replace(/"/g,"&quot;")}">
+          ${w.classification||"-"}${w.is_suspicious ? " ⚠" : ""}</td>
+      <td>${fmtPct(w.win_rate)}</td>
+      <td class="${cls(w.total_pnl_sol||0)}">${fmtSol(w.total_pnl_sol)}</td>
+      <td>${w.trade_count_30d ?? "-"}</td>
+      <td class="muted">${fmtDur(w.median_hold_seconds)}</td>
+      <td class="muted">${fmtDur(w.median_entry_delay)}</td>
+      <td>${fmtPct(w.rug_hit_rate)}</td>
+      <td><button class="sm danger" onclick="deleteWallet('${w.address}')">SIL</button></td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="11" class="empty">wallets_candidates.json doldurup SKORLA'ya basin</td></tr>`;
+}
+
+function renderSignals(){
+  const rows = app.signals || [];
+  $("signal-count").textContent = rows.length;
+  $("signals").innerHTML = rows.length ? rows.slice(0,120).map(s => {
+    const copied = s.action === "copied";
+    return `<tr>
+      <td class="muted">${(s.detected_at||"").slice(11)}</td>
+      <td title="${s.wallet}">${short(s.wallet)}</td>
+      <td><span class="tag ${s.side === "buy" ? "buy" : "rej"}">${(s.side||"").toUpperCase()}</span></td>
+      <td title="${s.mint}">${(s.mint||"").slice(0,10)}</td>
+      <td>${Number(s.wallet_amount_sol||0).toFixed(3)}</td>
+      <td class="muted">${s.signal_age_ms ?? "-"}ms</td>
+      <td><span class="tag ${copied ? "buy" : "rej"}">${copied ? "KOPYALANDI" : "ATLANDI"}</span>
+          <span class="reason">${s.skip_reason||""}</span></td>
+    </tr>`;
+  }).join("") : `<tr><td colspan="7" class="empty">Takipteki bir cuzdan islem yapinca burada gorunur</td></tr>`;
+}
+
 function renderFeed(){
   $("feed-count").textContent = app.feed.length;
   if(!app.feed.length) return;
@@ -256,20 +364,29 @@ function renderPositions(){
   $("positions").innerHTML = rows.length ? rows.map(p => {
     const rem = p.remaining_percent !== undefined ? p.remaining_percent : (100 - (p.total_sold_percent||0));
     const mult = p.entry_price > 0 ? (p.current_price/p.entry_price) : 0;
+    const src = p.source_wallet
+      ? `<span class="tag buy" title="${p.source_wallet}">${short(p.source_wallet)}</span>`
+      : `<span class="reason">legacy</span>`;
+    const curve = (p.curve_progress_at_entry !== null && p.curve_progress_at_entry !== undefined)
+      ? ` <span class="muted">${Math.round(p.curve_progress_at_entry*100)}%</span>` : "";
+    // Trailing artik tier1'e degil ATH/giris >= trailing_arm_x'e silahlaniyor.
+    const athMult = p.entry_price > 0 ? ((p.ath_price||p.entry_price)/p.entry_price) : 0;
+    const armed = !p.source_wallet && (p.tier1_sold || athMult >= (app.trailingArmX||1.4));
     return `<tr>
       <td title="${p.mint}">${(p.name||p.mint||"?").slice(0,16)}
           ${p.is_paper ? '<span class="tag pap">P</span>' : ''}</td>
+      <td>${src}${curve}</td>
       <td>${fmtUsd(p.entry_price)}</td>
       <td>${fmtUsd(p.current_price)}</td>
       <td class="muted">${fmtUsd(p.ath_price)}</td>
       <td class="${cls(p.pnl_percent||0)}">${fmtPct(p.pnl_percent)} <span class="muted">${mult?mult.toFixed(2)+"x":""}</span></td>
-      <td>${tierCells(p)}</td>
-      <td class="${p.tier1_sold ? "" : "muted"}">${p.tier1_sold ? fmtUsd(p.trailing_stop_price) : "-"}</td>
+      <td>${p.source_wallet ? '<span class="reason">lider cikisi</span>' : tierCells(p)}</td>
+      <td class="${armed ? "" : "muted"}">${armed ? fmtUsd(p.trailing_stop_price) : "-"}</td>
       <td><div class="bar" title="${rem.toFixed(0)}%"><i style="width:${Math.max(0,Math.min(100,rem))}%"></i></div></td>
       <td class="muted">${age(p.timestamp)}</td>
       <td><button class="sm danger" onclick="sellPosition(${p.id})">SAT</button></td>
     </tr>`;
-  }).join("") : `<tr><td colspan="10" class="empty">Acik pozisyon yok</td></tr>`;
+  }).join("") : `<tr><td colspan="11" class="empty">Acik pozisyon yok</td></tr>`;
 }
 
 function renderTrades(){
@@ -334,6 +451,14 @@ function setStatus(s){
     $("wsdot").className = "dot " + (s.connected ? "ok" : "bad");
     $("wstext").textContent = s.connected ? "helius bagli" : "helius kopuk";
   }
+  if(s.strategy_mode) $("modeStrategy").textContent = String(s.strategy_mode).toUpperCase();
+  if(s.copy_connected !== undefined){
+    $("copydot").className = "dot " + (s.copy_connected ? "ok" : "bad");
+    $("copytext").textContent = s.copy_connected
+      ? (s.followed_wallets||0) + " cuzdan dinleniyor" : "kopya kapali";
+  }
+  if(s.signals_copied !== undefined) $("st-bought").textContent =
+    (s.coins_bought||0) + (s.signals_copied ? " (" + s.signals_copied + " kopya)" : "");
 }
 
 function setStats(st){
@@ -352,6 +477,8 @@ function fillSettings(cfg){
     if(input) input.value = val;
   }
   if(cfg.paper_trading !== undefined) setMode(cfg.paper_trading);
+  if(cfg.trailing_arm_x) app.trailingArmX = Number(cfg.trailing_arm_x);
+  if(cfg.strategy_mode) $("modeStrategy").textContent = String(cfg.strategy_mode).toUpperCase();
 }
 
 /* ---------- actions ---------- */
@@ -388,12 +515,39 @@ $("resetPaper").onclick = async () => {
   refreshTables();
 };
 
+// strategy_mode metin alanidir; parseFloat onu NaN yapardi.
+const TEXT_SETTINGS = new Set(["strategy_mode"]);
+
 $("settings").onsubmit = async (e) => {
   e.preventDefault();
   const body = {};
-  new FormData(e.target).forEach((v,k) => body[k] = parseFloat(v));
+  new FormData(e.target).forEach((v,k) => body[k] = TEXT_SETTINGS.has(k) ? v : parseFloat(v));
   fillSettings(await api("/api/settings", {method:"POST", body:JSON.stringify(body)}));
   addLog("Ayarlar kaydedildi", "success");
+};
+
+$("scoreBtn").onclick = async () => {
+  if(!confirm("Aday cuzdanlar taranacak. 30 gunluk gecmis + RPC hiz limiti yuzunden "
+            + "bu islem uzun surebilir (cuzdan basina dakikalar). Baslatilsin mi?")) return;
+  const res = await api("/api/wallets/score", {method:"POST", body:JSON.stringify({use_ai:true})});
+  if(res.error){ alert(res.error); return; }
+  addLog("Skorlama baslatildi - ilerleme log'da", "info");
+};
+
+window.followWallet = async (address, followed) => {
+  const res = await api("/api/wallets/" + address + "/follow",
+                        {method:"POST", body:JSON.stringify({followed})});
+  if(res.error){ alert(res.error); return; }
+  const w = app.wallets.find(x => x.address === address);
+  if(w) w.is_followed = followed ? 1 : 0;
+  renderWallets();
+};
+
+window.deleteWallet = async (address) => {
+  if(!confirm(address.slice(0,10) + "... listeden silinsin mi?")) return;
+  await api("/api/wallets/" + address, {method:"DELETE"});
+  app.wallets = app.wallets.filter(w => w.address !== address);
+  renderWallets();
 };
 
 window.sellPosition = async (id) => {
@@ -404,14 +558,17 @@ window.sellPosition = async (id) => {
 };
 
 async function refreshTables(){
-  const [positions, trades, status] = await Promise.all([
-    api("/api/positions"), api("/api/trades"), api("/api/status")
+  const [positions, trades, status, wallets, signals] = await Promise.all([
+    api("/api/positions"), api("/api/trades"), api("/api/status"),
+    api("/api/wallets"), api("/api/signals?limit=100")
   ]);
   app.positions = new Map((positions||[]).map(p => [p.id, p]));
   app.trades = trades || [];
+  app.wallets = wallets || [];
+  app.signals = signals || [];
   setStatus(status); setStats(status.stats);
   $("balance").textContent = Number(status.sol_balance||0).toFixed(4);
-  renderPositions(); renderTrades();
+  renderPositions(); renderTrades(); renderWallets(); renderSignals();
 }
 
 /* ---------- websocket ---------- */
@@ -436,15 +593,23 @@ function connect(){
         setPaperWallet(d.paper_wallet);
         app.positions = new Map((d.positions||[]).map(p=>[p.id,p]));
         app.trades = d.trades || [];
+        app.wallets = d.wallets || [];
+        app.signals = d.signals || [];
         $("balance").textContent = Number(d.sol_balance||0).toFixed(4);
         (d.recent||[]).forEach(m => {
           if(m.type === "new_coin") app.feed.unshift(m.data);
           else if(m.type === "log") addLog(m.data.message, m.data.level);
         });
-        renderFeed(); renderPositions(); renderTrades();
+        renderFeed(); renderPositions(); renderTrades(); renderWallets(); renderSignals();
         break;
       case "new_coin":
         app.feed.unshift(d); app.feed = app.feed.slice(0,200); renderFeed();
+        break;
+      case "wallets":
+        app.wallets = d || []; renderWallets();
+        break;
+      case "copy_signal":
+        app.signals.unshift(d); app.signals = app.signals.slice(0,200); renderSignals();
         break;
       case "position_update": {
         const pos = app.positions.get(d.id);
