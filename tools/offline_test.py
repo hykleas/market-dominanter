@@ -211,6 +211,9 @@ import trader
 db.init_db()
 state.settings.paper_trading=True
 state.settings.paper_balance_sol=1.0; state.settings.paper_funded_sol=1.0
+# Alim buyuklugu fiyat etkisine giriyor; yerel settings.json'dan gelmesin,
+# yoksa panelden auto_buy_sol degistirmek bu testi kiriyor.
+state.settings.auto_buy_sol=0.01
 state.settings.save=lambda: None
 async def fake_sol(): return 160.0
 trader.sol_price_usd=fake_sol; analyzer.sol_price_usd=fake_sol
@@ -222,7 +225,8 @@ async def run_paper():
 pid, pos = asyncio.run(run_paper())
 check("paper alim acildi", pid is not None)
 check("dolum fiyati kotu yonde", pos["entry_price"] > 0.00001, pos["entry_price"])
-impact = 0.00001*(1+ (state.settings.paper_slippage_pct/100 + (0.01*160/5000)))
+impact = 0.00001*(1+ (state.settings.paper_slippage_pct/100
+                     + (state.settings.auto_buy_sol*160/5000)))
 check("slipaj = taban + etki", abs(pos["entry_price"]-impact) < 1e-12, (pos["entry_price"], impact))
 
 async def run_sell():

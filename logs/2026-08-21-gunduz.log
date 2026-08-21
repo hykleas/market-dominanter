@@ -51,3 +51,4 @@ INFO:     127.0.0.1:49926 - "GET /api/status HTTP/1.1" 200 OK
 10:03:46 INFO    [info] Ayarlar kaydedildi
 INFO:     127.0.0.1:49936 - "POST /api/settings HTTP/1.1" 200 OK
 10:04:05 INFO    [info] Yeni coin: CoZQrZSn2u - analiz 90s sonra
+10:04:12 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
