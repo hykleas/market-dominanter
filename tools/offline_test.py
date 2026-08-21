@@ -93,7 +93,13 @@ check("talep yok -> RED", not rr.passed and any("curve" in x for x in rr.reasons
 busyc = M(mint="m", price_usd=1e-5, market_cap=12000, bundler=1.0, sniper=2.0, dev=1.0,
           top10=12.0, lp_burned=True, curve_sol=6.0, curve_complete=False, sniper_truncated=True)
 rr = analyzer.evaluate(busyc, cfg)
-check("asiri yogun launch -> RED", not rr.passed and any("yogun" in x for x in rr.reasons), rr.reason_text)
+# e710398: yogun launch penceresi artik KOSULSUZ red degil - runner'in imzasi
+# oldugu icin varsayilan kapali (reject_on_busy_launch=False), yalnizca olculur.
+check("yogun launch varsayilan olarak elemez", rr.passed, rr.reason_text)
+cfg_busy = state.Settings(reject_on_busy_launch=True)
+rb = analyzer.evaluate(busyc, cfg_busy)
+check("yogun launch -> RED (kural acikken)",
+      not rb.passed and any("yogun" in x for x in rb.reasons), rb.reason_text)
 
 missing = M(mint="m")
 rr = analyzer.evaluate(missing, cfg)

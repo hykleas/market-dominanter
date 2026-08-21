@@ -15,3 +15,6 @@ server.log
 server.err
 *.db-shm
 *.db-wal
+
+# calisma loglari (arsivlenmis kopyalari logs/ altinda)
+run-*.log

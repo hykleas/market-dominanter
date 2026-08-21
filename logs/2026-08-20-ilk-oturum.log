@@ -1,0 +1,122 @@
+23:46:14 INFO    http://127.0.0.1:8000 adresinde baslatiliyor
+INFO:     Started server process [26992]
+INFO:     Waiting for application startup.
+23:46:14 INFO    Veritabani guncellendi: positions.entry_cost_sol eklendi
+23:46:14 INFO    Veritabani guncellendi: positions.source_wallet eklendi
+23:46:14 INFO    Veritabani guncellendi: positions.curve_progress_at_entry eklendi
+23:46:14 INFO    Veritabani guncellendi: trades.source_wallet eklendi
+23:46:14 INFO    Veritabani hazir: C:\Users\fevzi\market-fucker\trades.db
+23:46:14 WARNING WALLET_PRIVATE_KEY yok - sadece PAPER modu kullanilabilir
+23:46:14 INFO    [warn] PAPER modu aktif - gercek islem yapilmayacak
+23:46:14 INFO    [info] Strateji modu: COPY
+23:46:14 INFO    [success] Sunucu hazir
+23:46:14 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+23:46:14 INFO    [info] Pozisyon takibi basladi
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+23:46:15 INFO    [success] Helius websocket baglandi, pump.fun dinleniyor
+INFO:     127.0.0.1:53510 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56302 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56303 - "GET /api/wallets HTTP/1.1" 200 OK
+23:48:14 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+23:50:14 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+23:52:14 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+23:54:14 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+23:56:14 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+23:57:48 INFO    [warn] Mod degisti: PAPER
+INFO:     127.0.0.1:59310 - "POST /api/mode HTTP/1.1" 200 OK
+23:57:48 INFO    [info] Ayarlar kaydedildi
+INFO:     127.0.0.1:59311 - "POST /api/settings HTTP/1.1" 200 OK
+23:57:59 INFO    [info] Ayarlar kaydedildi
+INFO:     127.0.0.1:59314 - "POST /api/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:59315 - "GET /api/status HTTP/1.1" 200 OK
+23:58:04 INFO    [success] Bot BASLATILDI
+INFO:     127.0.0.1:59317 - "POST /api/bot/start HTTP/1.1" 200 OK
+23:58:14 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+23:58:34 INFO    [info] Yeni coin: 7vgxPbzKV6 - analiz 40s sonra
+INFO:     127.0.0.1:55804 - "GET /api/status HTTP/1.1" 200 OK
+23:58:55 INFO    [info] Yeni coin: FLxz1TaXkF - analiz 40s sonra
+INFO:     127.0.0.1:55811 - "GET /api/coins/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55812 - "GET /api/coins HTTP/1.1" 200 OK
+23:59:05 INFO    [info] Yeni coin: 9fmPXCQpwR - analiz 40s sonra
+INFO:     127.0.0.1:55814 - "GET /api/coins/stats HTTP/1.1" 200 OK
+23:59:07 INFO    [info] Yeni coin: 34QHm4N47L - analiz 40s sonra
+INFO:     127.0.0.1:55818 - "GET /api/coins/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:55819 - "GET /api/coins HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62116 - "GET /api/coins/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62117 - "GET /api/coins HTTP/1.1" 200 OK
+INFO:     127.0.0.1:49294 - "GET /api/coins/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:54209 - "GET /api/coins HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56650 - "GET /api/coins/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:56651 - "GET /api/coins HTTP/1.1" 200 OK
+23:59:45 INFO    [warn] Helius baglantisi koptu (ConnectionClosedError), 5s sonra tekrar denenecek
+23:59:55 INFO    [success] Helius websocket baglandi, pump.fun dinleniyor
+INFO:     127.0.0.1:62936 - "GET /api/coins/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:62937 - "GET /api/coins HTTP/1.1" 200 OK
+23:59:57 INFO    [info] Yeni coin: 24wN4esPQv - analiz 40s sonra
+00:00:00 INFO    [info] Yeni coin: CjDBsz8YKv - analiz 40s sonra
+00:00:03 INFO    [info] Yeni coin: FaH9cUik6f - analiz 40s sonra
+INFO:     127.0.0.1:64241 - "GET /api/coins/stats HTTP/1.1" 200 OK
+INFO:     127.0.0.1:64242 - "GET /api/coins HTTP/1.1" 200 OK
+00:00:06 INFO    [info] Yeni coin: DR55Hc3vCv - analiz 40s sonra
+00:00:10 INFO    [info] Yeni coin: G37HEUobZi - analiz 40s sonra
+00:00:13 INFO    [info] Yeni coin: eu1n5nu54q - analiz 40s sonra
+00:00:14 INFO    [info] Yeni coin: 4Whpse6Q3W - analiz 40s sonra
+00:00:14 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+00:00:15 INFO    [info] Yeni coin: ALq6HM8MCj - analiz 40s sonra
+INFO:     127.0.0.1:64261 - "GET /api/coins/stats HTTP/1.1" 200 OK
+00:00:16 INFO    [info] Yeni coin: GH4xWQeXdA - analiz 40s sonra
+00:00:17 INFO    [info] Yeni coin: 7AsHCjYtmt - analiz 40s sonra
+00:00:18 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+00:00:45 INFO    [info] Yeni coin: 8P6BdU6UZN - analiz 40s sonra
+00:00:46 INFO    [info] Yeni coin: CqMfZcAqWM - analiz 40s sonra
+00:00:47 INFO    [info] Yeni coin: GFChDmrqh6 - analiz 40s sonra
+00:00:47 INFO    [info] Yeni coin: 248y3iKCAL - analiz 40s sonra
+00:00:48 INFO    [info] Yeni coin: 24wNLcB3da - analiz 40s sonra
+00:00:53 INFO    [info] Yeni coin: FykozDVvJZ - analiz 40s sonra
+00:00:53 INFO    [info] Yeni coin: 2RGNTWasia - analiz 40s sonra
+00:00:53 INFO    [info] Yeni coin: FevzTDBWJg - analiz 40s sonra
+00:01:03 INFO    [info] Yeni coin: FGKTqf2YZQ - analiz 40s sonra
+00:01:03 INFO    [info] Yeni coin: FwjaM489Bv - analiz 40s sonra
+00:01:03 INFO    [info] Yeni coin: v7C9QNw1qE - analiz 40s sonra
+00:01:07 INFO    [info] Yeni coin: fwFfezVADN - analiz 40s sonra
+00:01:08 INFO    [info] Yeni coin: 9FgcfPvhDK - analiz 40s sonra
+00:01:08 INFO    [info] Yeni coin: 9CfpWfS8Sd - analiz 40s sonra
+00:01:11 INFO    [info] Yeni coin: Hwg5A1ZJaV - analiz 40s sonra
+00:01:12 INFO    [info] Yeni coin: 7RzGHAWQCP - analiz 40s sonra
+00:01:14 INFO    [info] Yeni coin: 6kWx968BkG - analiz 40s sonra
+00:01:15 INFO    [info] Yeni coin: 4X5vHt1fsi - analiz 40s sonra
+00:01:15 INFO    [info] Yeni coin: 34MZvdCvcS - analiz 40s sonra
+00:01:16 INFO    [info] Yeni coin: 4eYD4NSMXk - analiz 40s sonra
+00:01:16 INFO    [info] Yeni coin: ZEzoYLnydm - analiz 40s sonra
+00:01:19 INFO    [info] Yeni coin: EtBSgBoUny - analiz 40s sonra
+00:01:21 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+00:01:23 INFO    [info] Yeni coin: 6Z7ihn1JNy - analiz 40s sonra
+00:01:26 INFO    [info] Yeni coin: DusHn9DNhF - analiz 40s sonra
+00:01:26 INFO    [info] Yeni coin: DS5MNXZWEe - analiz 40s sonra
+00:01:27 INFO    [info] Yeni coin: 2BFms4VHuN - analiz 40s sonra
+00:01:27 INFO    [info] Yeni coin: 2mfbr1CbXu - analiz 40s sonra
+00:01:28 INFO    [info] Yeni coin: AVhD4Qm3Yz - analiz 40s sonra
+00:01:33 INFO    [info] Yeni coin: AR13h4x7qj - analiz 40s sonra
+00:01:36 INFO    [info] Yeni coin: 24wNY643m5 - analiz 40s sonra
+00:01:36 INFO    [info] Yeni coin: X3Ygd8rD2w - analiz 40s sonra
+00:01:38 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+00:01:39 INFO    [info] Yeni coin: FDatTSDW7c - analiz 40s sonra
+00:01:40 INFO    [info] Yeni coin: 5EEHm1comK - analiz 40s sonra
+00:01:42 INFO    [info] Yeni coin: 9CLaSc6bwz - analiz 40s sonra
+00:01:42 INFO    [info] Yeni coin: FjyK3oeoia - analiz 40s sonra
+00:01:43 INFO    [info] Yeni coin: GrmPJPGxVL - analiz 40s sonra
+00:01:45 INFO    [info] Yeni coin: 4wd7faasQA - analiz 40s sonra
+00:01:48 INFO    [info] Yeni coin: BN5nuSfeGt - analiz 40s sonra
+00:01:49 INFO    [info] Yeni coin: 5XeAyznGfB - analiz 40s sonra
+00:01:50 INFO    [info] Yeni coin: DGfmuoXyvo - analiz 40s sonra
+00:01:51 INFO    [info] Yeni coin: RrWp74WoZJ - analiz 40s sonra
+00:01:54 INFO    [info] Yeni coin: eA3pwzo8gB - analiz 40s sonra
+00:01:55 INFO    [info] Yeni coin: B2Y95YfQ47 - analiz 40s sonra
+00:02:05 INFO    [info] Yeni coin: 4x2PGGdJMn - analiz 40s sonra
+00:02:05 INFO    [info] Yeni coin: DPiTveorKw - analiz 40s sonra
+00:02:09 INFO    [info] Yeni coin: DGePGYhhFC - analiz 40s sonra
+00:02:14 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+00:02:16 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+00:02:17 INFO    [warn] Bot DURDURULDU (acik analizler tamamlanacak)
+INFO:     127.0.0.1:59754 - "POST /api/bot/stop HTTP/1.1" 200 OK
