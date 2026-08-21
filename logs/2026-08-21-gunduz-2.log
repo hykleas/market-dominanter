@@ -164,3 +164,9 @@ INFO:     127.0.0.1:50158 - "GET /api/coins/stats HTTP/1.1" 200 OK
 10:21:12 INFO    [info] Yeni coin: J3yMgC9xi8 - analiz 90s sonra
 10:21:13 INFO    [info] Yeni coin: 6c8UN62gxD - analiz 90s sonra
 10:21:24 INFO    [info] Yeni coin: A3CJjnT7hD - analiz 90s sonra
+10:21:35 INFO    [info] Yeni coin: Eg4WKnTUme - analiz 90s sonra
+10:21:38 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+10:21:42 INFO    [info] Yeni coin: 7ZFcjpCbeG - analiz 90s sonra
+10:21:42 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+10:21:49 INFO    [info] Yeni coin: GDSM2mSsFG - analiz 90s sonra
+10:21:50 INFO    [info] Yeni coin: CvsDGVn56E - analiz 90s sonra
