@@ -93,10 +93,12 @@ class Settings:
     # 30sn'de coinlerin neredeyse tamami launch tabaninda duruyor (canli olcum:
     # mcap $2281 = curve tabani, curve 0.00 SOL). 90sn'de ayrisiyorlar, yani filtre
     # ancak orada gercek sinyalle calisiyor. Sniper penceresi (15sn) de kapanmis olur.
-    # 90sn, bandin anlamli oldugu ani kaciriyordu: o sureye kadar kazananlar
-    # zaten mcap tavanini asmis oluyordu. 40sn, sinyalin olustugu ama bandin
-    # hala ayirt edici oldugu nokta.
-    analyze_delay: float = 40.0
+    # 40sn denendi (21 Agustos gecesi, 4661 karar): o noktada coinlerin %95'i
+    # hala launch tabaninda (mcap ~$2450, curve 0.00 SOL) oldugu icin filtre
+    # kotu coin degil, henuz dogmamis coin eliyordu -> 0 alim. Olcum 90sn'yi
+    # dogruluyor; mcap tavani da 150k'ya acildigi icin "kazananlar tavani asar"
+    # itirazi artik gecerli degil (4661 kararda tavan sadece 20 kez devrede).
+    analyze_delay: float = 90.0
     # Launch penceresinde MAX_EARLY_TX'ten fazla islem olmasi eskiden KOSULSUZ
     # reddi tetikliyordu. Ama yogun launch penceresi runner'in imzasidir; bu
     # kural tam da en canli coinleri eliyordu. False = olculur, reddetmez.

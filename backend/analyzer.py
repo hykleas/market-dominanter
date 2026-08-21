@@ -629,15 +629,21 @@ def evaluate(metrics: Metrics, cfg: state.Settings) -> AnalysisResult:
     # Demand check. A coin younger than Dexscreener's indexing lag has no 5m
     # volume at all, so the on-chain SOL paid into the curve is the primary
     # measure and the 5m volume only applies once it actually exists.
+    # min_volume_5m <= 0 "bu kurali kapat" demek. Karsilastirma <= oldugu icin
+    # esigi 0'a cekmek kurali kapatmiyordu: hacmi 0 olan her coin eleniyordu
+    # (21 Agustos gecesi 4661 kararin 4406'sinda tetiklendi). Esik pozitifken
+    # kural normal calisir; veri yoklugu kontrolu (need) her halukarda gecerli.
+    volume_rule_on = cfg.min_volume_5m > 0
     if metrics.curve_sol is not None and not metrics.curve_complete:
         if metrics.curve_sol < cfg.min_curve_sol:
             add("curve_low", "curve %.2f SOL < %.2f SOL" % (metrics.curve_sol, cfg.min_curve_sol))
         if metrics.curve_sol > cfg.max_curve_sol:
             add("curve_high", "curve %.2f SOL > %.2f SOL" % (metrics.curve_sol, cfg.max_curve_sol))
-        if metrics.volume_5m is not None and metrics.volume_5m <= cfg.min_volume_5m:
-            add("volume", "5m hacim $%.0f <= $%.0f" % (metrics.volume_5m, cfg.min_volume_5m))
-    elif need(metrics.volume_5m, "5m hacim", "volume") and metrics.volume_5m <= cfg.min_volume_5m:
-        add("volume", "5m hacim $%.0f <= $%.0f" % (metrics.volume_5m, cfg.min_volume_5m))
+        if volume_rule_on and metrics.volume_5m is not None and metrics.volume_5m < cfg.min_volume_5m:
+            add("volume", "5m hacim $%.0f < $%.0f" % (metrics.volume_5m, cfg.min_volume_5m))
+    elif need(metrics.volume_5m, "5m hacim", "volume"):
+        if volume_rule_on and metrics.volume_5m < cfg.min_volume_5m:
+            add("volume", "5m hacim $%.0f < $%.0f" % (metrics.volume_5m, cfg.min_volume_5m))
 
     if metrics.freeze_authority:
         add("freeze", "freeze authority acik")
