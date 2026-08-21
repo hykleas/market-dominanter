@@ -634,16 +634,25 @@ def evaluate(metrics: Metrics, cfg: state.Settings) -> AnalysisResult:
     # (21 Agustos gecesi 4661 kararin 4406'sinda tetiklendi). Esik pozitifken
     # kural normal calisir; veri yoklugu kontrolu (need) her halukarda gecerli.
     volume_rule_on = cfg.min_volume_5m > 0
-    if metrics.curve_sol is not None and not metrics.curve_complete:
+    # curve = birincil talep olcusu, yoklugu eskiden SESSIZCE "kontrol yok"
+    # demekti: read_curve hem RPC hatasinda hem coin DEX'e gecince None donuyor
+    # ve curve_complete yalnizca curve okunabildiginde set ediliyor, yani iki
+    # durum ayirt edilemiyordu. 429 yiyen coin curve_low/curve_high'i hic
+    # gormeden geciyordu - 21 Agustos: "The Boo Dog", curve_sol=None, alindi,
+    # 95 saniyede -%67. Diger tum metriklerde oldugu gibi eksik veri artik FAIL.
+    if need(metrics.curve_sol, "curve", "curve") and not metrics.curve_complete:
         if metrics.curve_sol < cfg.min_curve_sol:
             add("curve_low", "curve %.2f SOL < %.2f SOL" % (metrics.curve_sol, cfg.min_curve_sol))
         if metrics.curve_sol > cfg.max_curve_sol:
             add("curve_high", "curve %.2f SOL > %.2f SOL" % (metrics.curve_sol, cfg.max_curve_sol))
         if volume_rule_on and metrics.volume_5m is not None and metrics.volume_5m < cfg.min_volume_5m:
             add("volume", "5m hacim $%.0f < $%.0f" % (metrics.volume_5m, cfg.min_volume_5m))
-    elif need(metrics.volume_5m, "5m hacim", "volume"):
-        if volume_rule_on and metrics.volume_5m < cfg.min_volume_5m:
-            add("volume", "5m hacim $%.0f < $%.0f" % (metrics.volume_5m, cfg.min_volume_5m))
+    elif metrics.curve_complete:
+        # Curve dolmus, coin DEX'e gecmis: curve esikleri artik anlamsiz,
+        # talep olcusu 5m hacim.
+        if need(metrics.volume_5m, "5m hacim", "volume"):
+            if volume_rule_on and metrics.volume_5m < cfg.min_volume_5m:
+                add("volume", "5m hacim $%.0f < $%.0f" % (metrics.volume_5m, cfg.min_volume_5m))
 
     if metrics.freeze_authority:
         add("freeze", "freeze authority acik")

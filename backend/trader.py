@@ -336,10 +336,23 @@ async def buy(mint: str, name: str = "?", price_hint: Optional[float] = None,
     if size <= 0:
         state.bus.log("Gecersiz alim miktari (%.4f SOL): %s" % (size, name), "error")
         return None
-    entry_price = price_hint or await analyzer.current_price(mint) or 0.0
+    # Fiyat, analizin EN BASINDA aliniyor (analyzer.collect_metrics); arkasindan
+    # gelen derin analiz (holder + erken alici taramasi, yogun bir launch'ta 100+
+    # getTransaction) 6.5 rps tavani ve 429 beklemeleriyle dakikalarca surebiliyor.
+    # price_hint'i dogrudan giris fiyati saymak o dakikalarin hareketini pozisyona
+    # yaziyordu: 21 Agustos'ta "KRANK" alindiktan 2 SANIYE sonra -%31.6 stop loss
+    # yedi, cunku hint gercek fiyatin %44 ustundeydi. Giris fiyati artik alim
+    # anindan; hint yalnizca taze fiyat alinamazsa yedek.
+    fresh_price = await analyzer.current_price(mint)
+    entry_price = fresh_price or price_hint or 0.0
     if entry_price <= 0:
         state.bus.log("Giris fiyati alinamadi, alim atlandi: " + name, "error")
         return None
+    if fresh_price and price_hint and price_hint > 0:
+        drift = (fresh_price - price_hint) / price_hint * 100.0
+        if abs(drift) >= 10.0:
+            state.bus.log("%s: analiz fiyati %%%.0f bayat (analiz uzun surdu), taze fiyatla alindi"
+                          % (name, drift), "warn")
 
     if is_paper():
         return await _paper_buy(mint, name, size, entry_price, liquidity_hint,

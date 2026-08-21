@@ -217,6 +217,10 @@ state.settings.auto_buy_sol=0.01
 state.settings.save=lambda: None
 async def fake_sol(): return 160.0
 trader.sol_price_usd=fake_sol; analyzer.sol_price_usd=fake_sol
+# Giris fiyati artik alim aninda current_price'tan okunuyor (price_hint yalnizca
+# yedek); testin offline kalmasi icin stub'lanmali.
+async def fake_price(mint): return 0.00001
+analyzer.current_price=fake_price
 
 async def run_paper():
     pid = await trader.buy(MINT, "test", price_hint=0.00001, liquidity_hint=5000.0)

@@ -60,9 +60,26 @@ def test_positive_threshold_still_filters():
     assert "volume" not in evaluate(clean_metrics(volume_5m=250.0), cfg(min_volume_5m=250.0)).codes
 
 
-def test_missing_volume_still_fails_when_curve_absent():
+def test_missing_curve_is_a_failure():
+    """curve verisi yoksa talep kontrolu yapilamaz -> FAIL.
+
+    Eskiden sessizce atlaniyordu: 429 yiyen coin curve_low/curve_high'i hic
+    gormeden geciyordu ("The Boo Dog", 21 Agustos, alindi -> 95sn'de -%67).
+    """
+    res = evaluate(clean_metrics(curve_sol=None), cfg())
+    assert "no_curve" in res.codes
+    assert not res.passed
+
+    # ... ama curve dolup DEX'e gecmisse esikler zaten anlamsiz, hacme bakilir
+    res = evaluate(clean_metrics(curve_sol=99.0, curve_complete=True), cfg())
+    assert "curve_high" not in res.codes
+    assert res.passed
+
+
+def test_migrated_coin_still_needs_volume_data():
     """Eksik veri = FAIL kurali hacim esigi kapaliyken de gecerli."""
-    res = evaluate(clean_metrics(volume_5m=None, curve_sol=None), cfg(min_volume_5m=0.0))
+    res = evaluate(clean_metrics(volume_5m=None, curve_sol=50.0, curve_complete=True),
+                   cfg(min_volume_5m=0.0))
     assert "no_volume" in res.codes
     assert not res.passed
 
