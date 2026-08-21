@@ -1,0 +1,86 @@
+MARKET-DOMINANTER — KAPANIS RAPORU
+tur: 21.08.2026 11:11 (sifirlama) -> 17:14:16 (durdurma)
+mod: PAPER | strateji: legacy fresh-launch sniper | SOL/USD $90.87
+======================================================================================================
+
+1) KAPANAN ISLEMLER (20)
+
+   coin                       giris $       cikis $          PnL %    PnL SOL    sure sebep         
+   ---------------------------------------------------------------------------------------------------
+   Grompany                   0.00001111    0.00002312      108.10    0.02461    459s tier1         
+   pupu the frug              0.00000591    0.00000370      -37.47   -0.04123    630s stop_loss     
+   bing chilling              0.00001295    0.00000872      -32.67   -0.03661    936s stop_loss     
+   コリラックマ                     0.00000891    0.00000577      -35.25   -0.03915   1301s stop_loss     
+   Grompany                   0.00001111    0.00005560      400.53    0.09422   1818s tier2         
+   Grompany                   0.00001111    0.00003684      231.61    0.10927   2154s trailing_stop 
+   The Donkey Runner          0.00001019    0.00000701      -31.18   -0.03304    818s stop_loss     
+   The Survivor               0.00000625    0.00000429      -31.37   -0.03514   5858s stop_loss     
+   ANKLE OS                   0.00001290    0.00000872      -32.41   -0.03570    205s stop_loss     
+   Bullcoin                   0.00001128    0.00000750      -33.54   -0.03650   1377s stop_loss     
+   The Green Candle           0.00001316    0.00000875      -33.54   -0.03706   2810s stop_loss     
+   Fear of Missing Out        0.00000590    0.00000400      -32.25   -0.03548   4276s stop_loss     
+   Awesome GitHub Profile Rea 0.00000629    0.00000612       -2.71   -0.00471  11055s trailing_stop 
+   ANSEM.TODAY                0.00001159    0.00000745      -35.74   -0.03815  11997s stop_loss     
+   bing chilling              0.00000518    0.00000341      -34.05   -0.03608   7921s stop_loss     
+   The Survivor               0.00000524    0.00000524       -0.14   -0.00284   6594s trailing_stop 
+   Smoking Chill Monkey       0.00001378    0.00002835      105.70    0.02452  12785s tier1         
+   Feralized Agents           0.00000701    0.00000779       11.17    0.00912  15576s trailing_stop 
+   Big Harry                  0.00000949    0.00000988        4.06    0.00051  10800s trailing_stop 
+   Onecoin                    0.00000991    0.00000635      -35.96   -0.03877  14829s stop_loss     
+   ---------------------------------------------------------------------------------------------------
+   GERCEKLESEN: -0.18821 SOL ($-17.10) | kazanan 6/20 = %30
+   kapanis sebepleri: {'tier1': 2, 'stop_loss': 12, 'tier2': 1, 'trailing_stop': 5}
+
+2) ACIK POZISYONLAR (13) — durdurma aninda
+
+   coin                       giris $       son $            PnL %    kat
+   ----------------------------------------------------------------------------
+   Smoking Chill Monkey       0.00001378    0.00002808       103.8   2.04
+   Rodeus                     0.00002642    0.00002702         2.3   1.02
+   GARDN                      0.00001737    0.00001724        -0.8   0.99
+   Fuc Dis                    0.00000535    0.00000525        -1.9   0.98
+   tim                        0.00001234    0.00001182        -4.2   0.96
+   The Paper Bag Cult         0.00001897    0.00001785        -5.9   0.94
+   Capa The Camel             0.00000561    0.00000521        -7.1   0.93
+   THE BAGMAN                 0.00002262    0.00002049        -9.4   0.91
+   Spongebob One Piece        0.00000562    0.00000498       -11.4   0.89
+   Superman                   0.00000529    0.00000464       -12.3   0.88
+   Flappy Bull                0.00000846    0.00000738       -12.8   0.87
+   Clayground                 0.00000937    0.00000817       -12.9   0.87
+   bullrun                    0.00000528    0.00000440       -16.7   0.83
+   ----------------------------------------------------------------------------
+   deger 1.3108 SOL ($119.11) | maliyet 1.3000 SOL | gerceklesmemis +0.0108 SOL
+
+3) KAR / ZARAR
+
+   baslangic        : 2.2039 SOL   ($200.26)
+   nakit            : 0.7278 SOL   ($66.14)
+   acik pozisyonlar : 1.3108 SOL   ($119.11)
+   ---------------------------------------------
+   TOPLAM SERVET    : 2.0386 SOL   ($185.25)
+   NET SONUC        : -0.1652 SOL  ($-15.02)  = %-7.50
+   odenen fee       : 0.0360 SOL   ($3.27)  (net zararin %22'i)
+
+4) FILTRE (2669 karar)  sonuc: {'REJECTED': 2639, 'BOUGHT': 30}
+
+   kural            devrede   tek sebep
+   --------------------------------------
+   mcap_low            2430          64
+   curve_low           1786           0
+   bundler             1089           7
+   no_curve             651           4
+   top10                388          52
+   no_bundler           324           0
+   no_sniper            324           0
+   no_dev               317           0
+   no_top10             317           0
+   sniper               258           1
+   no_mcap               40           0
+   no_price              39           0
+   mcap_high             35           0
+   dev                   26           0
+   lp_burn               18           0
+   freeze                 6           0
+   curve_high             1           0
+
+   gorulen coin: 2608 | rpc: {'calls': 78592, 'rate_limited': 16028, 'failed': 0}

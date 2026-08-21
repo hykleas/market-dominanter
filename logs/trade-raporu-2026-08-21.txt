@@ -1,0 +1,171 @@
+MARKET-DOMINANTER — TRADE RAPORU
+olusturma: 21.08.2026 14:06:42 | SOL/USD: $91.43
+mod: PAPER (simulasyon, gercek para degil) | strateji: legacy fresh-launch sniper
+
+!! VERI KAPSAMI: paper cuzdan bugun 3 kez sifirlandi (09:30, 10:22, 11:11).
+   Asagidaki islem tablosu SON sifirlamadan (21.08 11:11) itibaridir.
+   Karar gecmisi (coin_decisions) sifirlamalardan etkilenmedi, 20.08 16:45'ten beri tam.
+====================================================================================================
+
+1) TOPLAM ACILAN POZISYON (son 24 saat, tum turlar dahil): 44
+   ilk: 2026-08-20T16:46:56   son: 2026-08-21T13:55:36
+
+   coin                       karar zamani             mcap $  curve SOL 5m hacim $
+   --------------------------------------------------------------------------------
+   zaza                       2026-08-20T16:46:56        8827      24.01      11304
+   Beef & Cow Index           2026-08-21T10:06:53        6606      12.50      22182
+   Smoking Chill Monkey       2026-08-21T10:15:17       14122      40.78         89
+   The Boo Dog                2026-08-21T10:15:42       39875        YOK       2267
+   KRANK                      2026-08-21T10:19:19       21839        YOK       3209
+   The Odyssean Owl           2026-08-21T10:33:19        9642      27.70      14128
+   The Paper Bag Cult         2026-08-21T10:37:49       17942      50.03          0
+   AVA FONTAINE               2026-08-21T10:40:21        6445      17.96       1520
+   The Happy Doggo            2026-08-21T10:47:05        9442      27.66       3439
+   In the Air Theory          2026-08-21T10:47:17        5501      14.66       1566
+   bing chilling              2026-08-21T10:55:07        8336      22.94      16331
+   outbid                     2026-08-21T10:56:31        9602      17.97       5777
+   Fih and Puh                2026-08-21T10:57:42        6984      19.88        183
+   胆子真是肥嘟嘟的                   2026-08-21T11:03:50        5984      16.14        118
+   Smoochie The Clone         2026-08-21T11:06:27        6136      13.38         58
+   Rodeus                     2026-08-21T11:15:52       26012      66.06         20
+   The Survivor               2026-08-21T11:23:55        6138      13.31       2930
+   コリラックマ                     2026-08-21T11:24:21        8760      23.07       4670
+   bing chilling              2026-08-21T11:26:35       11580      37.20       4554
+   Grompany                   2026-08-21T11:27:29       10934      36.36       2355
+   pupu the frug              2026-08-21T11:30:25        5806      14.52       7048
+   ANSEM.TODAY                2026-08-21T11:36:56       11404      32.26        122
+   Awesome GitHub Profile Rea 2026-08-21T11:45:31        6179      16.49         35
+   Fuc Dis                    2026-08-21T11:48:04        5254      12.94          0
+   The Donkey Runner          2026-08-21T11:54:29       10026      29.45        435
+   THE BAGMAN                 2026-08-21T11:56:06       22272      57.46        139
+   Feralized Agents           2026-08-21T12:03:01        6885      18.74         72
+   Flappy Bull                2026-08-21T12:03:02        8319      23.95          0
+   The Paper Bag Cult         2026-08-21T12:04:10       18670      50.46          0
+   Smoking Chill Monkey       2026-08-21T12:14:54       13722      38.00        337
+   Superman                   2026-08-21T12:20:54        5194      12.36          0
+   The Green Candle           2026-08-21T12:33:54       12959      41.71       2883
+   tim                        2026-08-21T12:41:36       12018      35.32          0
+   Bullcoin                   2026-08-21T12:45:47       11110      32.86       2933
+   bing chilling              2026-08-21T12:49:18        5081      12.15        515
+   Capa The Camel             2026-08-21T12:56:45        5509      13.91         47
+   Clayground                 2026-08-21T12:58:18        9214      26.78         15
+   Onecoin                    2026-08-21T13:00:08        7836       6.55          0
+   ANKLE OS                   2026-08-21T13:03:29       12695      37.03       3809
+   Fear of Missing Out        2026-08-21T13:06:00        6663      16.63       9460
+   The Survivor               2026-08-21T13:12:30        5379      12.61        444
+   Spongebob One Piece        2026-08-21T13:17:04        5521      14.13          0
+   bullrun                    2026-08-21T13:26:31        5179      12.67          0
+   Big Harry                  2026-08-21T13:55:36        9337      27.30        305
+
+====================================================================================================
+
+2) KAPANAN ISLEMLER (son sifirlamadan beri): 11
+
+   coin                       giris $        cikis $           PnL %     PnL SOL     sure kapanis sebebi
+   ----------------------------------------------------------------------------------------------------
+   Grompany                   0.00001111     0.00002312       108.10     0.02461     459s tier1         
+   pupu the frug              0.00000591     0.00000370       -37.47    -0.04123     630s stop_loss     
+   bing chilling              0.00001295     0.00000872       -32.67    -0.03661     936s stop_loss     
+   コリラックマ                     0.00000891     0.00000577       -35.25    -0.03915    1301s stop_loss     
+   Grompany                   0.00001111     0.00005560       400.53     0.09422    1818s tier2         
+   Grompany                   0.00001111     0.00003684       231.61     0.10927    2154s trailing_stop 
+   The Donkey Runner          0.00001019     0.00000701       -31.18    -0.03304     818s stop_loss     
+   The Survivor               0.00000625     0.00000429       -31.37    -0.03514    5858s stop_loss     
+   ANKLE OS                   0.00001290     0.00000872       -32.41    -0.03570     205s stop_loss     
+   Bullcoin                   0.00001128     0.00000750       -33.54    -0.03650    1377s stop_loss     
+   The Green Candle           0.00001316     0.00000875       -33.54    -0.03706    2810s stop_loss     
+   ----------------------------------------------------------------------------------------------------
+   TOPLAM: -0.06632 SOL ($-6.06) | kazanan 3 / 11 (win rate %27)
+
+====================================================================================================
+
+3) ACIK POZISYONLAR: 20
+
+   coin                       giris $        guncel $          PnL %     kat  yatirilan durum             
+   ----------------------------------------------------------------------------------------------------
+   Feralized Agents           0.00000701     0.00001003         43.2    1.43     0.1000 hic satilmadi     
+   Smoking Chill Monkey       0.00001378     0.00001871         35.8    1.36     0.1000 hic satilmadi     
+   The Survivor               0.00000524     0.00000617         17.7    1.18     0.1000 hic satilmadi     
+   Awesome GitHub Profile Rea 0.00000629     0.00000716         13.8    1.14     0.1000 hic satilmadi     
+   tim                        0.00001234     0.00001367         10.8    1.11     0.1000 hic satilmadi     
+   Big Harry                  0.00000949     0.00001028          8.3    1.08     0.1000 hic satilmadi     
+   Rodeus                     0.00002642     0.00002628         -0.5    0.99     0.1000 hic satilmadi     
+   THE BAGMAN                 0.00002262     0.00002247         -0.7    0.99     0.1000 hic satilmadi     
+   Flappy Bull                0.00000846     0.00000832         -1.7    0.98     0.1000 hic satilmadi     
+   Fuc Dis                    0.00000535     0.00000525         -1.9    0.98     0.1000 hic satilmadi     
+   The Paper Bag Cult         0.00001897     0.00001830         -3.5    0.96     0.1000 hic satilmadi     
+   Clayground                 0.00000937     0.00000892         -4.8    0.95     0.1000 hic satilmadi     
+   Spongebob One Piece        0.00000562     0.00000535         -4.9    0.95     0.1000 hic satilmadi     
+   bullrun                    0.00000528     0.00000478         -9.3    0.91     0.1000 hic satilmadi     
+   Fear of Missing Out        0.00000590     0.00000469        -20.6    0.79     0.1000 hic satilmadi     
+   Onecoin                    0.00000991     0.00000784        -20.9    0.79     0.1000 hic satilmadi     
+   Superman                   0.00000529     0.00000418        -21.0    0.79     0.1000 hic satilmadi     
+   bing chilling              0.00000518     0.00000406        -21.6    0.78     0.1000 hic satilmadi     
+   ANSEM.TODAY                0.00001159     0.00000882        -23.9    0.76     0.1000 hic satilmadi     
+   Capa The Camel             0.00000561     0.00000397        -29.3    0.71     0.1000 hic satilmadi     
+   ----------------------------------------------------------------------------------------------------
+   acik pozisyon guncel degeri: 1.9650 SOL ($179.66), maliyet 2.0000 SOL
+
+====================================================================================================
+
+4) CUZDAN OZETI
+   baslangic       : 2.2039 SOL ($201.50)
+   nakit           : 0.1174 SOL ($10.74)
+   acik pozisyonlar: 1.9650 SOL ($179.66)
+   TOPLAM SERVET   : 2.0824 SOL ($190.40)
+   gerceklesen PnL : -0.0663 SOL | odenen fee: 0.0197 SOL ($1.80)
+   NET             : -0.1214 SOL ($-11.10) = %-5.51
+
+====================================================================================================
+
+5) FILTRE ISTATISTIGI (11:11'den beri, 1863 karar)
+   sonuc: {'REJECTED': 1834, 'BOUGHT': 29}
+
+   kural            devrede   tek sebep
+   --------------------------------------
+   mcap_low            1690          55
+   curve_low           1366           0
+   bundler              904           6
+   top10                333          48
+   no_curve             288           4
+   sniper               219           1
+   mcap_high             29           0
+   dev                   26           0
+   no_bundler            20           0
+   no_sniper             20           0
+   lp_burn               15           0
+   no_dev                13           0
+   no_top10              13           0
+   no_mcap                8           0
+   no_price               7           0
+   freeze                 5           0
+   curve_high             1           0
+
+   gorulen coin (bu surecte): 1802 | rpc: {'calls': 58906, 'rate_limited': 8589, 'failed': 0}
+
+====================================================================================================
+
+6) AKTIF AYARLAR
+   analyze_delay        90.0
+   auto_buy_sol         0.1
+   min_mcap             5000.0
+   max_mcap             150000.0
+   min_curve_sol        2.0
+   max_curve_sol        70.0
+   min_volume_5m        0.0
+   max_bundler          5.0
+   max_sniper           10.0
+   max_dev_holdings     5.0
+   max_top10            25.0
+   tier1_x              2.0
+   tier2_x              5.0
+   tier3_x              10.0
+   tier1_pct            25.0
+   trailing_stop        30.0
+   trailing_arm_x       1.4
+   stop_loss            30.0
+   slippage_bps         1500
+   fee_priority_sol     0.001
+   price_loop_sec       3.0
+
+   NOT: escaman pozisyon sayisi sinirsiz - filtreden gecen her coin, para bitene kadar alinir.
