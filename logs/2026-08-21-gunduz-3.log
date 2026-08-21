@@ -478,3 +478,464 @@ INFO:     127.0.0.1:50734 - "GET /api/positions HTTP/1.1" 200 OK
 10:53:47 INFO    [info] Yeni coin: 5XSX2wY4tb - analiz 90s sonra
 10:53:58 INFO    [info] Yeni coin: CwnYxc1qty - analiz 90s sonra
 10:54:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+10:54:11 INFO    [info] Yeni coin: 97b8tMc3tt - analiz 90s sonra
+10:54:14 INFO    [info] Yeni coin: kb6JYZHqKL - analiz 90s sonra
+10:54:15 INFO    [info] Yeni coin: CEQzcRsFwz - analiz 90s sonra
+10:54:16 INFO    [info] Yeni coin: FmDRmWSDe7 - analiz 90s sonra
+10:54:22 INFO    [info] Yeni coin: Geizyu1X35 - analiz 90s sonra
+10:54:25 INFO    [error] Stop loss: The Happy Doggo (-31.3%)
+10:54:25 INFO    [info] [PAPER] SATIS The Happy Doggo stop_loss %100 -> 0.06541 SOL (fee 0.00168)
+10:54:25 INFO    [error] [PAPER] The Happy Doggo | stop_loss %100 | PnL -32.37% (-0.0356 SOL)
+10:54:26 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+10:54:28 INFO    [info] Yeni coin: FTTuPQWgJR - analiz 90s sonra
+10:54:29 INFO    [info] Yeni coin: 5jbXUnDfB5 - analiz 90s sonra
+10:54:34 INFO    [info] Yeni coin: 6GP2F3QdAS - analiz 90s sonra
+10:54:34 INFO    [info] Yeni coin: FnhSaFdjmx - analiz 90s sonra
+10:54:34 INFO    [info] Yeni coin: f8fsMXHxgn - analiz 90s sonra
+10:54:38 INFO    [info] Yeni coin: yGRSarENNm - analiz 90s sonra
+10:54:44 INFO    [info] Yeni coin: AoWxC2uTBD - analiz 90s sonra
+10:54:48 INFO    [info] Yeni coin: 55bQmzbWe4 - analiz 90s sonra
+10:54:55 INFO    [info] Yeni coin: 9F5mu4fbu7 - analiz 90s sonra
+10:54:57 INFO    [info] Yeni coin: 24xccaWhyS - analiz 90s sonra
+10:54:57 INFO    [info] Yeni coin: 3p4F9k9Mhv - analiz 90s sonra
+10:55:04 INFO    [info] Yeni coin: 5BzaPaSv5A - analiz 90s sonra
+10:55:04 INFO    [info] Yeni coin: 8oSWLyV1Q6 - analiz 90s sonra
+10:55:07 INFO    [success] [PAPER] ALINDI bing chilling - 0.1000 SOL @ $0.00000848 (slipaj %1.72, fee 0.00200 SOL)
+10:55:11 INFO    [info] Yeni coin: 3MVsLc6PJ8 - analiz 90s sonra
+10:55:17 INFO    [info] Yeni coin: HTvt87eqcN - analiz 90s sonra
+10:55:17 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+10:55:18 INFO    [info] Yeni coin: 9uYWiRDyJe - analiz 90s sonra
+10:55:18 INFO    [info] Yeni coin: 7zbDiAWuds - analiz 90s sonra
+10:55:22 INFO    [info] Yeni coin: WBDH1JbDyD - analiz 90s sonra
+10:55:23 INFO    [info] Yeni coin: 5eGfTbkr5D - analiz 90s sonra
+10:55:26 INFO    [info] Yeni coin: Gw8ECtzQGc - analiz 90s sonra
+10:55:33 INFO    [info] Yeni coin: HAShAXCFJ6 - analiz 90s sonra
+10:55:51 INFO    [info] Yeni coin: 8exUjZ4sji - analiz 90s sonra
+10:55:51 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+10:55:55 INFO    [info] Yeni coin: 352yUG62Ky - analiz 90s sonra
+10:55:56 INFO    [info] Yeni coin: 4fcR7p9HUj - analiz 90s sonra
+10:55:57 INFO    [info] Yeni coin: FdBurpfm2s - analiz 90s sonra
+10:55:57 INFO    [info] Yeni coin: DU3mYvfvMY - analiz 90s sonra
+10:56:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+10:56:04 INFO    [info] Yeni coin: GDthKey1FE - analiz 90s sonra
+10:56:07 INFO    [info] Yeni coin: 4343PGSEEa - analiz 90s sonra
+10:56:08 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+10:56:15 INFO    [info] Yeni coin: EVA2K6vSg4 - analiz 90s sonra
+10:56:21 INFO    [info] Yeni coin: BKwJjXngmy - analiz 90s sonra
+10:56:30 INFO    [info] Yeni coin: EFk5uWMUk1 - analiz 90s sonra
+10:56:31 INFO    [info] Yeni coin: HkAotvUzag - analiz 90s sonra
+10:56:31 INFO    [success] [PAPER] ALINDI outbid - 0.1000 SOL @ $0.00000977 (slipaj %1.78, fee 0.00200 SOL)
+10:56:33 INFO    [info] Yeni coin: 68npGuPa3q - analiz 90s sonra
+10:56:46 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+10:56:50 INFO    [info] Yeni coin: 6rFFW1QKM2 - analiz 90s sonra
+10:56:51 INFO    [info] Yeni coin: Bgsvh2tG9m - analiz 90s sonra
+10:56:52 INFO    [info] Yeni coin: 83hJDxkvQp - analiz 90s sonra
+10:56:54 INFO    [info] Yeni coin: 54fiemuKX5 - analiz 90s sonra
+10:56:57 INFO    [info] Yeni coin: CMsQSvd2GT - analiz 90s sonra
+10:57:00 INFO    [info] Yeni coin: 2r7W5yCB5b - analiz 90s sonra
+10:57:02 INFO    [info] Yeni coin: EJaCXPiGYQ - analiz 90s sonra
+10:57:06 INFO    [info] Yeni coin: AvXLTYZAQv - analiz 90s sonra
+10:57:07 INFO    [info] Yeni coin: 4imBxtgrGp - analiz 90s sonra
+10:57:07 INFO    [info] Yeni coin: 5TVqk2kWMk - analiz 90s sonra
+10:57:08 INFO    [info] Yeni coin: 83t3rUN28k - analiz 90s sonra
+10:57:10 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+10:57:14 INFO    [info] Yeni coin: 5uvCrGnzFR - analiz 90s sonra
+10:57:16 INFO    [error] Stop loss: outbid (-48.6%)
+10:57:16 INFO    [info] [PAPER] SATIS outbid stop_loss %100 -> 0.04862 SOL (fee 0.00151)
+10:57:16 INFO    [error] [PAPER] outbid | stop_loss %100 | PnL -49.38% (-0.0524 SOL)
+10:57:27 INFO    [info] Yeni coin: 4viTiVtL7d - analiz 90s sonra
+10:57:34 INFO    [info] Yeni coin: 6Gko7A5ZVK - analiz 90s sonra
+10:57:36 INFO    [info] Yeni coin: 5nEsZTwtCM - analiz 90s sonra
+10:57:40 INFO    [info] Yeni coin: 6kfij5WYAV - analiz 90s sonra
+10:57:40 INFO    [info] Yeni coin: 5G7wvUGA6q - analiz 90s sonra
+10:57:41 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+10:57:42 INFO    [success] [PAPER] ALINDI Fih and Puh - 0.1000 SOL @ $0.00000711 (slipaj %1.75, fee 0.00200 SOL)
+10:57:43 INFO    [info] Yeni coin: 3dowCTM8WT - analiz 90s sonra
+10:57:58 INFO    [info] Yeni coin: HNxWd33uEV - analiz 90s sonra
+10:57:59 INFO    [info] Yeni coin: 4xZkoe4tu4 - analiz 90s sonra
+10:58:00 INFO    [info] Yeni coin: 24xd48vMYi - analiz 90s sonra
+10:58:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+10:58:02 INFO    [info] Yeni coin: bDVwrV3kFK - analiz 90s sonra
+10:58:03 INFO    [info] Yeni coin: BHutXRzsNL - analiz 90s sonra
+10:58:05 INFO    [info] Yeni coin: oVB9XRKo1D - analiz 90s sonra
+10:58:10 INFO    [info] Yeni coin: 9beUEwdVGW - analiz 90s sonra
+10:58:19 INFO    [info] Yeni coin: CXmJDdCmmV - analiz 90s sonra
+10:58:19 INFO    [info] Yeni coin: BDR1Sfckf9 - analiz 90s sonra
+10:58:22 INFO    [info] Yeni coin: 7Hjp8EcYmo - analiz 90s sonra
+10:58:23 INFO    [info] Yeni coin: 4phxHXtPii - analiz 90s sonra
+10:58:23 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+10:58:26 INFO    [info] Yeni coin: E677zf4cWq - analiz 90s sonra
+10:58:31 INFO    [info] Yeni coin: 5rsrECy9Cv - analiz 90s sonra
+10:58:41 INFO    [info] Yeni coin: 4YP2bnCdpW - analiz 90s sonra
+10:58:41 INFO    [info] Yeni coin: DH4fLjCf77 - analiz 90s sonra
+10:58:48 INFO    [info] Yeni coin: 77qAEV8bvP - analiz 90s sonra
+10:58:49 INFO    [info] Yeni coin: LYvszssmc4 - analiz 90s sonra
+10:58:50 INFO    [info] Yeni coin: GWEqqDaT7X - analiz 90s sonra
+10:58:59 INFO    [info] Yeni coin: 8fQJEuYKSs - analiz 90s sonra
+10:59:05 INFO    [info] Yeni coin: FAJypo8u3R - analiz 90s sonra
+10:59:15 INFO    [info] Yeni coin: FbgqzKRtLG - analiz 90s sonra
+10:59:15 INFO    [info] Yeni coin: FRg6yYRQjh - analiz 90s sonra
+10:59:22 INFO    [info] Yeni coin: FskjGY7v77 - analiz 90s sonra
+10:59:34 INFO    [info] Yeni coin: 8V1ETLtKtM - analiz 90s sonra
+10:59:34 INFO    [info] Yeni coin: 52wRum6Uem - analiz 90s sonra
+10:59:35 INFO    [info] Yeni coin: DpY24cCttV - analiz 90s sonra
+10:59:35 INFO    [info] Yeni coin: F9BgZwQvyz - analiz 90s sonra
+10:59:36 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+10:59:37 INFO    [info] Yeni coin: HPWk1QtFBn - analiz 90s sonra
+10:59:38 INFO    [info] Yeni coin: 4pi5VdDKAN - analiz 90s sonra
+10:59:43 INFO    [info] Yeni coin: HXrPKbTzeB - analiz 90s sonra
+10:59:44 INFO    [info] Yeni coin: 2RdbnsVBAM - analiz 90s sonra
+10:59:45 INFO    [info] Yeni coin: 3xZE16RWWm - analiz 90s sonra
+10:59:55 INFO    [info] Yeni coin: 7DoWPxWg7X - analiz 90s sonra
+10:59:55 INFO    [info] Yeni coin: G3EZXakNZU - analiz 90s sonra
+11:00:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+11:00:08 INFO    [info] Yeni coin: 4NxozGZvZh - analiz 90s sonra
+11:00:14 INFO    [info] Yeni coin: EKMzgQs4Qa - analiz 90s sonra
+11:00:14 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:00:14 INFO    [info] Yeni coin: 7qoCZV19Da - analiz 90s sonra
+11:00:15 INFO    [info] Yeni coin: 7VdVDV7Wgr - analiz 90s sonra
+11:00:17 INFO    [info] Yeni coin: 75VFWADpaF - analiz 90s sonra
+11:00:50 INFO    [warn] Helius baglantisi koptu (ConnectionClosedError), 5s sonra tekrar denenecek
+11:00:56 INFO    [success] Helius websocket baglandi, pump.fun dinleniyor
+11:01:15 INFO    [info] Yeni coin: 5KXrKiYyis - analiz 90s sonra
+11:01:17 INFO    [info] Yeni coin: 24xdBeho6x - analiz 90s sonra
+11:01:26 INFO    [info] Yeni coin: ArZvxEKXnm - analiz 90s sonra
+11:01:26 INFO    [info] Yeni coin: AeRasjyhca - analiz 90s sonra
+11:01:48 INFO    [info] Yeni coin: 6rksd4346H - analiz 90s sonra
+11:01:48 INFO    [info] Yeni coin: 29uXeNzGTM - analiz 90s sonra
+11:01:49 INFO    [info] Yeni coin: HfLi6U1g3E - analiz 90s sonra
+11:01:49 INFO    [info] Yeni coin: 9dfHzFsh5c - analiz 90s sonra
+11:01:49 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:02:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+11:02:02 INFO    [info] Yeni coin: 4uz46yrkdG - analiz 90s sonra
+11:02:05 INFO    [info] Yeni coin: BMNEWYengr - analiz 90s sonra
+11:02:18 INFO    [info] Yeni coin: FdSUwt13qW - analiz 90s sonra
+11:02:21 INFO    [info] Yeni coin: 8hWrwLUV8d - analiz 90s sonra
+11:02:32 INFO    [info] Yeni coin: J9p77cpAYN - analiz 90s sonra
+11:02:34 INFO    [info] Yeni coin: 3JpJwtYsoF - analiz 90s sonra
+11:02:37 INFO    [info] Yeni coin: FWBN11WuvG - analiz 90s sonra
+11:02:44 INFO    [warn] Helius baglantisi koptu (ConnectionClosedError), 5s sonra tekrar denenecek
+11:02:49 INFO    [success] Helius websocket baglandi, pump.fun dinleniyor
+11:02:50 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:02:57 INFO    [info] Yeni coin: 24xdC1Z4wU - analiz 90s sonra
+11:03:01 INFO    [info] Yeni coin: 9bTpsJgvQk - analiz 90s sonra
+11:03:03 INFO    [info] Yeni coin: h194ZQAirE - analiz 90s sonra
+11:03:04 INFO    [info] Yeni coin: bd5BiL1Ruf - analiz 90s sonra
+11:03:05 INFO    [info] Yeni coin: 7yr3dApB5i - analiz 90s sonra
+11:03:13 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:03:20 INFO    [info] Yeni coin: FccAjzZVBa - analiz 90s sonra
+11:03:21 INFO    [info] Yeni coin: EUpYAzzA6A - analiz 90s sonra
+11:03:24 INFO    [info] Yeni coin: AsHjRE8ENZ - analiz 90s sonra
+11:03:42 INFO    [info] Yeni coin: ZExy7krMik - analiz 90s sonra
+11:03:42 INFO    [info] Yeni coin: DdW2Gtkekp - analiz 90s sonra
+11:03:43 INFO    [info] Yeni coin: 2dP2pxfHjE - analiz 90s sonra
+11:03:43 INFO    [info] Yeni coin: 7ezQG7HKBf - analiz 90s sonra
+11:03:43 INFO    [info] Yeni coin: 8r29CF1csc - analiz 90s sonra
+11:03:43 INFO    [info] Yeni coin: GJMSJwJmAX - analiz 90s sonra
+11:03:44 INFO    [info] Yeni coin: BU3P3Mf7oU - analiz 90s sonra
+11:03:46 INFO    [info] Yeni coin: 3v68Bm65Hz - analiz 90s sonra
+11:03:50 INFO    [success] [PAPER] ALINDI \u80c6\u5b50\u771f\u662f\u80a5\u561f\u561f\u7684 - 0.1000 SOL @ $0.00000609 (slipaj %1.81, fee 0.00200 SOL)
+11:03:50 INFO    [info] Yeni coin: 72CVpmBqPi - analiz 90s sonra
+11:03:56 INFO    [info] Yeni coin: E6RtxyD7Xw - analiz 90s sonra
+11:04:00 INFO    [info] Yeni coin: EwrCooFVST - analiz 90s sonra
+11:04:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+11:04:09 INFO    [info] Yeni coin: 6G8V4pC3pF - analiz 90s sonra
+11:04:11 INFO    [info] Yeni coin: ApS7oB8gqh - analiz 90s sonra
+11:04:11 INFO    [info] Yeni coin: HABpJdaWV2 - analiz 90s sonra
+11:04:12 INFO    [info] Yeni coin: 9MUB66sVXk - analiz 90s sonra
+11:04:13 INFO    [info] Yeni coin: 3VwRwvx31L - analiz 90s sonra
+11:04:14 INFO    [info] Yeni coin: 2YMTVasMNN - analiz 90s sonra
+11:04:14 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:04:20 INFO    [info] Yeni coin: Fce2BJeoVm - analiz 90s sonra
+11:04:30 INFO    [info] Yeni coin: 8oiTdWepQL - analiz 90s sonra
+11:04:31 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:04:39 INFO    [info] Yeni coin: 24xdEBH9GC - analiz 90s sonra
+11:04:40 INFO    [info] Yeni coin: 5DMDMvx5cR - analiz 90s sonra
+11:04:45 INFO    [info] Yeni coin: 365ivYVbft - analiz 90s sonra
+11:04:46 INFO    [info] Yeni coin: BSjYK8xKRN - analiz 90s sonra
+11:04:46 INFO    [info] Yeni coin: 66SzExRjC7 - analiz 90s sonra
+11:04:46 INFO    [info] Yeni coin: 9hVAK8R2q5 - analiz 90s sonra
+11:04:46 INFO    [info] Yeni coin: 4Mhpb44h1j - analiz 90s sonra
+11:04:47 INFO    [info] Yeni coin: 6VcFkVcogE - analiz 90s sonra
+11:04:47 INFO    [info] Yeni coin: J4PvsKhfNg - analiz 90s sonra
+11:04:48 INFO    [info] Yeni coin: Da5UuNwKhD - analiz 90s sonra
+11:04:49 INFO    [info] Yeni coin: 7wb6jZWVn8 - analiz 90s sonra
+11:04:52 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:04:53 INFO    [info] Yeni coin: J1qPC6tmMc - analiz 90s sonra
+11:04:55 INFO    [info] Yeni coin: 7KeU4YUWnq - analiz 90s sonra
+11:05:02 INFO    [info] Yeni coin: 7bjDAj3GDX - analiz 90s sonra
+11:05:03 INFO    [info] Yeni coin: HVqX8PJMsh - analiz 90s sonra
+11:05:08 INFO    [info] Yeni coin: J41MKcEhNb - analiz 90s sonra
+11:05:09 INFO    [info] Yeni coin: E2n2oF1PeP - analiz 90s sonra
+11:05:10 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:05:11 INFO    [info] Yeni coin: 24xdQ71J7e - analiz 90s sonra
+11:05:11 INFO    [info] Yeni coin: 24wbCuuqak - analiz 90s sonra
+11:05:15 INFO    [info] Yeni coin: D6Ywtcsa6o - analiz 90s sonra
+11:05:20 INFO    [info] Yeni coin: 5m2trhyP6s - analiz 90s sonra
+11:05:26 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:05:38 INFO    [info] Yeni coin: GQCddTTDbz - analiz 90s sonra
+11:05:39 INFO    [info] Yeni coin: CPL5XZi2XQ - analiz 90s sonra
+11:05:44 INFO    [info] Yeni coin: 24xdTbHwAG - analiz 90s sonra
+11:05:49 INFO    [info] Yeni coin: GrrHfjUANq - analiz 90s sonra
+11:05:53 INFO    [info] Yeni coin: CmrPE5jpbk - analiz 90s sonra
+11:05:58 INFO    [info] Yeni coin: E5AhspLQHb - analiz 90s sonra
+11:06:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+11:06:01 INFO    [info] Yeni coin: 2bLJFJpDZC - analiz 90s sonra
+11:06:01 INFO    [info] Yeni coin: 5wSGCSGiiv - analiz 90s sonra
+11:06:01 INFO    [info] Yeni coin: AbVZezoRCZ - analiz 90s sonra
+11:06:01 INFO    [info] Yeni coin: 2wnZrgFZR4 - analiz 90s sonra
+11:06:12 INFO    [warn] Trailing stop: bing chilling (ATH $0.00001258 -> $0.00000819, 0.97x)
+11:06:12 INFO    [info] [PAPER] SATIS bing chilling trailing_stop %100 -> 0.09203 SOL (fee 0.00194)
+11:06:12 INFO    [error] [PAPER] bing chilling | trailing_stop %100 | PnL -4.81% (-0.0090 SOL)
+11:06:14 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:06:27 INFO    [success] [PAPER] ALINDI Smoochie The Clone - 0.1000 SOL @ $0.00000625 (slipaj %1.87, fee 0.00200 SOL)
+11:06:27 INFO    [info] Yeni coin: 6UThtHjzKn - analiz 90s sonra
+11:06:39 INFO    [warn] Helius baglantisi koptu (ConnectionClosedError), 5s sonra tekrar denenecek
+11:06:45 INFO    [success] Helius websocket baglandi, pump.fun dinleniyor
+11:06:47 INFO    [info] Yeni coin: FSzi7Kv5mB - analiz 90s sonra
+11:06:48 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:06:55 INFO    [info] Yeni coin: CHDFNw4Qey - analiz 90s sonra
+11:06:55 INFO    [info] Yeni coin: 24xdVZSRFK - analiz 90s sonra
+11:06:57 INFO    [info] Yeni coin: 61rDc6sd53 - analiz 90s sonra
+11:07:16 INFO    [info] Yeni coin: CxAvyNHLoG - analiz 90s sonra
+11:07:17 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:07:21 INFO    [info] Yeni coin: fdn68JqEKQ - analiz 90s sonra
+11:07:24 INFO    [info] Yeni coin: 5QrWfXxQwk - analiz 90s sonra
+11:07:25 INFO    [info] Yeni coin: HFnzKiEQtu - analiz 90s sonra
+11:07:25 INFO    [info] Yeni coin: 9zXNWMNv3t - analiz 90s sonra
+11:07:25 INFO    [info] Yeni coin: gopHXX4paM - analiz 90s sonra
+11:07:25 INFO    [info] Yeni coin: 2AWf41WVJZ - analiz 90s sonra
+11:07:25 INFO    [info] Yeni coin: AwFZCa6Fri - analiz 90s sonra
+11:07:26 INFO    [info] Yeni coin: 7vYvyyuTVp - analiz 90s sonra
+11:07:28 INFO    [info] Yeni coin: 5Zyari863s - analiz 90s sonra
+11:07:31 INFO    [info] Yeni coin: DpdJwMr6JW - analiz 90s sonra
+11:07:46 INFO    [info] Yeni coin: 34KTnTNfJn - analiz 90s sonra
+11:07:51 INFO    [info] Yeni coin: 4M7FzV1rd8 - analiz 90s sonra
+11:07:52 INFO    [info] Yeni coin: DukNNajA9W - analiz 90s sonra
+11:07:52 INFO    [info] Yeni coin: 3MUfGtdhBz - analiz 90s sonra
+11:07:53 INFO    [info] Yeni coin: AzJCA4fMpZ - analiz 90s sonra
+11:07:53 INFO    [info] Yeni coin: B42PkvVJCA - analiz 90s sonra
+11:07:53 INFO    [info] Yeni coin: EWdwPJFyqT - analiz 90s sonra
+11:07:54 INFO    [info] Yeni coin: 2bbVgitFrA - analiz 90s sonra
+11:08:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+11:08:01 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:08:01 INFO    [info] Yeni coin: G5v2YCaB1s - analiz 90s sonra
+11:08:01 INFO    [info] Yeni coin: H1wMskKeMP - analiz 90s sonra
+11:08:02 INFO    [info] Yeni coin: Hqi4z7NECZ - analiz 90s sonra
+11:08:03 INFO    [info] Yeni coin: 7HuVbYgKsN - analiz 90s sonra
+INFO:     127.0.0.1:51125 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51126 - "GET /api/paper HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51127 - "GET /api/positions HTTP/1.1" 200 OK
+11:08:09 INFO    [info] Yeni coin: 86we8Lj4hV - analiz 90s sonra
+11:08:09 INFO    [info] Yeni coin: 5NdoVzY4iX - analiz 90s sonra
+11:08:09 INFO    [info] Yeni coin: A5LiVPuVNf - analiz 90s sonra
+11:08:15 INFO    [info] Yeni coin: 7BVC1m8MwM - analiz 90s sonra
+11:08:17 INFO    [info] Yeni coin: 98VP1PLZ5b - analiz 90s sonra
+11:08:19 INFO    [info] Yeni coin: HeZAgodbDv - analiz 90s sonra
+11:08:20 INFO    [info] Yeni coin: SERQfSio2r - analiz 90s sonra
+11:08:22 INFO    [info] Yeni coin: 4hVGbpBtiA - analiz 90s sonra
+11:08:22 INFO    [info] Yeni coin: F9NWar87H4 - analiz 90s sonra
+11:08:30 INFO    [info] Yeni coin: HcujP5TsbV - analiz 90s sonra
+11:08:33 INFO    [info] Yeni coin: 2boyU4nbHW - analiz 90s sonra
+11:08:38 INFO    [info] Yeni coin: CvmB43mcZj - analiz 90s sonra
+11:08:41 INFO    [info] Yeni coin: Bd8huf2zKZ - analiz 90s sonra
+11:08:42 INFO    [info] Yeni coin: 7jncgzaXXe - analiz 90s sonra
+11:08:46 INFO    [info] Yeni coin: BLvAQZSxas - analiz 90s sonra
+11:08:47 INFO    [info] Yeni coin: 8n4V9PbzN9 - analiz 90s sonra
+11:08:48 INFO    [info] Yeni coin: Eo92xjnfrE - analiz 90s sonra
+11:08:52 INFO    [info] Yeni coin: BVcVhepFqi - analiz 90s sonra
+11:08:54 INFO    [info] Yeni coin: HxWHkM4QD7 - analiz 90s sonra
+11:08:55 INFO    [info] Yeni coin: H62MvX7tAT - analiz 90s sonra
+11:08:57 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:09:03 INFO    [info] Yeni coin: B6FXpyrc37 - analiz 90s sonra
+11:09:04 INFO    [info] Yeni coin: 98pDA3775N - analiz 90s sonra
+INFO:     127.0.0.1:51169 - "GET / HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51172 - "WebSocket /ws" [accepted]
+INFO:     connection open
+INFO:     127.0.0.1:51169 - "GET /api/positions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51170 - "GET /api/trades HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51173 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51174 - "GET /api/wallets HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51175 - "GET /api/signals?limit=100 HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51176 - "GET /api/settings HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51176 - "GET /favicon.ico HTTP/1.1" 404 Not Found
+11:09:15 INFO    [info] Yeni coin: 29MxMuwtqk - analiz 90s sonra
+INFO:     127.0.0.1:51180 - "GET / HTTP/1.1" 200 OK
+11:09:30 INFO    [info] Yeni coin: C5qk4tgUcb - analiz 90s sonra
+11:09:33 INFO    [info] Yeni coin: ENQ79XACmJ - analiz 90s sonra
+11:10:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+11:10:01 INFO    [info] Yeni coin: AQaHkrs4RL - analiz 90s sonra
+11:10:02 INFO    [info] Yeni coin: 3xmUJRveef - analiz 90s sonra
+11:10:04 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:10:21 INFO    [info] Yeni coin: LZtjKWKkeW - analiz 90s sonra
+11:10:26 INFO    [info] Yeni coin: B8e8j53MPL - analiz 90s sonra
+11:10:28 INFO    [info] Yeni coin: 9e4T6awXjX - analiz 90s sonra
+11:10:28 INFO    [info] Yeni coin: FUXbpVuGnW - analiz 90s sonra
+11:10:29 INFO    [info] Yeni coin: 3eGeE4Mcv3 - analiz 90s sonra
+11:10:29 INFO    [info] Yeni coin: 83MGw4S5Br - analiz 90s sonra
+11:10:29 INFO    [info] Yeni coin: 2n7RFUW6wL - analiz 90s sonra
+11:10:31 INFO    [info] Yeni coin: 2Mwtr8xaUP - analiz 90s sonra
+11:10:31 INFO    [info] Yeni coin: BsdcrVjmxG - analiz 90s sonra
+11:10:32 INFO    [info] Yeni coin: 63t8mmgWem - analiz 90s sonra
+11:10:34 INFO    [info] Yeni coin: F9SJRo3AEA - analiz 90s sonra
+11:10:37 INFO    [info] Yeni coin: HM9X5onNE2 - analiz 90s sonra
+11:10:40 INFO    [info] Yeni coin: 5F239pxzif - analiz 90s sonra
+11:10:40 INFO    [info] Yeni coin: UagQnRLQZt - analiz 90s sonra
+11:10:43 INFO    [info] Yeni coin: 4RE4dKM6q8 - analiz 90s sonra
+11:10:44 INFO    [info] Yeni coin: Ah4VuJFTWt - analiz 90s sonra
+11:10:51 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+INFO:     127.0.0.1:51227 - "GET /api/positions HTTP/1.1" 200 OK
+11:10:57 INFO    [info] Yeni coin: F8TW488MVb - analiz 90s sonra
+11:11:00 INFO    [info] Yeni coin: D456qFfJCR - analiz 90s sonra
+11:11:00 INFO    [info] Yeni coin: 2YQZb7oDyQ - analiz 90s sonra
+11:11:02 INFO    [info] Yeni coin: C29e1jeFwj - analiz 90s sonra
+11:11:02 INFO    [info] Yeni coin: 8wMzhbPVPk - analiz 90s sonra
+11:11:04 INFO    [info] Yeni coin: 76NZoaZgY2 - analiz 90s sonra
+INFO:     127.0.0.1:51229 - "GET /api/positions HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51230 - "GET /api/status HTTP/1.1" 200 OK
+11:11:11 INFO    [info] Yeni coin: 6k1ytNvFam - analiz 90s sonra
+11:11:12 INFO    [info] Yeni coin: DLf7iWChzC - analiz 90s sonra
+11:11:12 INFO    [info] Yeni coin: 21D2eYmU5C - analiz 90s sonra
+11:11:22 INFO    Paper gecmisi sifirlandi
+11:11:22 INFO    [warn] Paper cuzdan sifirlandi: 2.2039 SOL ($200.00)
+INFO:     127.0.0.1:51240 - "POST /api/paper/reset HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51241 - "GET /api/status HTTP/1.1" 200 OK
+11:11:26 INFO    [info] Yeni coin: 5wcMZgRjwX - analiz 90s sonra
+11:11:34 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:11:39 INFO    [info] Yeni coin: wr1JKCRiiJ - analiz 90s sonra
+11:11:41 INFO    [info] Yeni coin: CCvbzHCVYz - analiz 90s sonra
+11:11:48 INFO    [info] Yeni coin: 2q11Jfb7Xc - analiz 90s sonra
+11:11:49 INFO    [info] Yeni coin: 3qYns9mJga - analiz 90s sonra
+11:12:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+11:12:06 INFO    [info] Yeni coin: 24xdYezoAr - analiz 90s sonra
+11:12:07 INFO    [info] Yeni coin: Gvv9jnnpTo - analiz 90s sonra
+11:12:15 INFO    [info] Yeni coin: CaDAeYCFe1 - analiz 90s sonra
+11:12:17 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:12:18 INFO    [info] Yeni coin: 4xhqdx6nco - analiz 90s sonra
+11:12:19 INFO    [info] Yeni coin: V2rSiqm9pM - analiz 90s sonra
+11:12:20 INFO    [info] Yeni coin: HdCcLhNJyf - analiz 90s sonra
+11:12:39 INFO    [info] Yeni coin: J6Zifp5im7 - analiz 90s sonra
+11:12:41 INFO    [info] Yeni coin: G4h1VtxFy7 - analiz 90s sonra
+11:12:41 INFO    [info] Yeni coin: 99fC6Pky6G - analiz 90s sonra
+11:12:42 INFO    [info] Yeni coin: Bc5Cs5MP6b - analiz 90s sonra
+11:12:46 INFO    [info] Yeni coin: 9FpEichGsn - analiz 90s sonra
+11:12:47 INFO    [info] Yeni coin: HmR23LTMXR - analiz 90s sonra
+11:12:48 INFO    [info] Yeni coin: ARn1up66fi - analiz 90s sonra
+11:12:49 INFO    [info] Yeni coin: 8Twnq7gG8z - analiz 90s sonra
+11:12:49 INFO    [info] Yeni coin: GYfQwDamRw - analiz 90s sonra
+11:12:49 INFO    [info] Yeni coin: GWJ6aeL97t - analiz 90s sonra
+11:13:09 INFO    [info] Yeni coin: 5FKxutEjq7 - analiz 90s sonra
+11:13:11 INFO    [info] Yeni coin: 4aFMbGxCsa - analiz 90s sonra
+11:13:11 INFO    [info] Yeni coin: CLQQ2ZoZeQ - analiz 90s sonra
+11:13:12 INFO    [info] Yeni coin: 24xdroBGtC - analiz 90s sonra
+11:13:13 INFO    [info] Yeni coin: 8isGcnrZrH - analiz 90s sonra
+11:13:13 INFO    [info] Yeni coin: 8WbcgJqJ88 - analiz 90s sonra
+11:13:14 INFO    [info] Yeni coin: 5RMWrcsewt - analiz 90s sonra
+11:13:15 INFO    [info] Yeni coin: DjBXk7cqkm - analiz 90s sonra
+11:13:17 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:13:21 INFO    [info] Yeni coin: DfYFvNAAts - analiz 90s sonra
+11:13:23 INFO    [info] Yeni coin: EDndiG9Mh9 - analiz 90s sonra
+11:13:25 INFO    [info] Yeni coin: 6YE6Vu3dUW - analiz 90s sonra
+11:13:25 INFO    [info] Yeni coin: FzgEzUHhPY - analiz 90s sonra
+11:13:26 INFO    [info] Yeni coin: HwQdQZuXN1 - analiz 90s sonra
+11:13:27 INFO    [info] Yeni coin: 3UEpdpfUMX - analiz 90s sonra
+11:13:42 INFO    [info] Yeni coin: BuHb1aiQfj - analiz 90s sonra
+11:13:43 INFO    [info] Yeni coin: HuLui1NsfX - analiz 90s sonra
+11:13:44 INFO    [info] Yeni coin: 6LToZdFYPW - analiz 90s sonra
+11:13:44 INFO    [info] Yeni coin: EUq61XNDEu - analiz 90s sonra
+11:13:44 INFO    [info] Yeni coin: F5YBuvDJXU - analiz 90s sonra
+11:13:45 INFO    [info] Yeni coin: 9dYgqSkJJK - analiz 90s sonra
+11:13:49 INFO    [info] Yeni coin: WFGSagUpy9 - analiz 90s sonra
+11:13:50 INFO    [info] Yeni coin: GbmDcvVEL2 - analiz 90s sonra
+11:13:50 INFO    [info] Yeni coin: 6onTdD7TVR - analiz 90s sonra
+11:13:52 INFO    [info] Yeni coin: 4UoU7GPNop - analiz 90s sonra
+11:13:53 INFO    [info] Yeni coin: 8b1RjY1jqV - analiz 90s sonra
+11:14:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+11:14:02 INFO    [info] Yeni coin: QRWX6Kp1W3 - analiz 90s sonra
+11:14:05 INFO    [info] Yeni coin: Gkr7QeAYXW - analiz 90s sonra
+11:14:08 INFO    [info] Yeni coin: BPuv813jer - analiz 90s sonra
+11:14:13 INFO    [info] Yeni coin: 76VzgkiX9o - analiz 90s sonra
+11:14:15 INFO    [info] Yeni coin: tVuaf5uSXC - analiz 90s sonra
+11:14:16 INFO    [info] Yeni coin: Ana7ze2q4t - analiz 90s sonra
+11:14:20 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:14:26 INFO    [info] Yeni coin: KHgzwZhktN - analiz 90s sonra
+11:14:27 INFO    [info] Yeni coin: 94uoQHbm99 - analiz 90s sonra
+11:14:33 INFO    [info] Yeni coin: D6RnZg9RLk - analiz 90s sonra
+11:14:40 INFO    [info] Yeni coin: 4FH1LuLUYV - analiz 90s sonra
+11:14:42 INFO    [info] Yeni coin: DjvFdJb83f - analiz 90s sonra
+11:14:44 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:14:51 INFO    [info] Yeni coin: EA9rSr36Yj - analiz 90s sonra
+11:14:57 INFO    [info] Yeni coin: 6wNb1PjCL2 - analiz 90s sonra
+11:14:59 INFO    [info] Yeni coin: 6NHSKtpKiK - analiz 90s sonra
+11:14:59 INFO    [info] Yeni coin: 9LfsRCMVDo - analiz 90s sonra
+11:15:00 INFO    [info] Yeni coin: 9FEjXnNsfr - analiz 90s sonra
+11:15:04 INFO    [info] Yeni coin: 5r47dAr9tS - analiz 90s sonra
+11:15:13 INFO    [info] Yeni coin: AYuLsmghSK - analiz 90s sonra
+11:15:18 INFO    [info] Yeni coin: E8w731SfSS - analiz 90s sonra
+11:15:20 INFO    [info] Yeni coin: BxgPgxzvmu - analiz 90s sonra
+11:15:25 INFO    [info] Yeni coin: 6UtBeeMxWB - analiz 90s sonra
+11:15:32 INFO    [info] Yeni coin: Ee6Ee37t1a - analiz 90s sonra
+11:15:32 INFO    [info] Yeni coin: 3atMhn6cLN - analiz 90s sonra
+11:15:32 INFO    [info] Yeni coin: HshF4WPMjX - analiz 90s sonra
+11:15:32 INFO    [info] Yeni coin: FLGtX1giBS - analiz 90s sonra
+11:15:33 INFO    [info] Yeni coin: 7J6PVp8stC - analiz 90s sonra
+11:15:37 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:15:45 INFO    [info] Yeni coin: 4PPRK9XKzW - analiz 90s sonra
+11:15:46 INFO    [info] Yeni coin: Ck7JdqX2vY - analiz 90s sonra
+11:15:46 INFO    [info] Yeni coin: HhFgFT6iDq - analiz 90s sonra
+11:15:48 INFO    [info] Yeni coin: 24xe8tMtMX - analiz 90s sonra
+11:15:52 INFO    [success] [PAPER] ALINDI Rodeus - 0.1000 SOL @ $0.00002642 (slipaj %1.58, fee 0.00200 SOL)
+11:15:56 INFO    [info] Yeni coin: AbBWgkTuaV - analiz 90s sonra
+11:16:00 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+11:16:02 INFO    [info] Yeni coin: 82LCyvbM5L - analiz 90s sonra
+11:16:03 INFO    [info] Yeni coin: 7v7ieK49Ci - analiz 90s sonra
+11:16:13 INFO    [info] Yeni coin: AsPNKs6ZYi - analiz 90s sonra
+11:16:16 INFO    [info] Yeni coin: GXnyhEJJUp - analiz 90s sonra
+11:16:16 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:16:23 INFO    [info] Yeni coin: 5SXZEt71Du - analiz 90s sonra
+11:16:27 INFO    [info] Yeni coin: H1mPdVXEHR - analiz 90s sonra
+11:16:30 INFO    [info] Yeni coin: x2Nao6nQWE - analiz 90s sonra
+11:16:35 INFO    [info] Yeni coin: 2aDpuCDbau - analiz 90s sonra
+11:16:37 INFO    [info] Yeni coin: GHXAdz9mEq - analiz 90s sonra
+11:16:37 INFO    [info] Yeni coin: 3dbgcy4Jjm - analiz 90s sonra
+11:16:41 INFO    [info] Yeni coin: Cz8YBF9UMf - analiz 90s sonra
+11:16:41 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:16:43 INFO    [info] Yeni coin: CCRG9qRYHs - analiz 90s sonra
+11:16:44 INFO    [info] Yeni coin: BU8KCpsYUz - analiz 90s sonra
+11:16:47 INFO    [info] Yeni coin: 8VNgJB53HY - analiz 90s sonra
+11:16:47 INFO    [info] Yeni coin: CjEGvHUhpd - analiz 90s sonra
+11:16:48 INFO    [info] Yeni coin: 8bdNwBhoXT - analiz 90s sonra
+11:16:48 INFO    [info] Yeni coin: 5wdLPQ5FJJ - analiz 90s sonra
+11:16:48 INFO    [info] Yeni coin: 5V7zZc1DqW - analiz 90s sonra
+11:16:51 INFO    [info] Yeni coin: 4yyvaUW5BA - analiz 90s sonra
+11:16:51 INFO    [info] Yeni coin: ASvX1XQWkn - analiz 90s sonra
+11:16:53 INFO    [info] Yeni coin: 24V3HWsFpy - analiz 90s sonra
+11:16:54 INFO    [info] Yeni coin: 5LtWJd5q2i - analiz 90s sonra
+11:16:57 INFO    [info] Yeni coin: 22m95dfQVL - analiz 90s sonra
+11:16:58 INFO    [info] Yeni coin: AxzAJBG685 - analiz 90s sonra
+11:16:59 INFO    [info] Yeni coin: DnUpmpbJw8 - analiz 90s sonra
+11:16:59 INFO    [info] Yeni coin: FV16QTCyKB - analiz 90s sonra
+11:17:00 INFO    [info] Yeni coin: 7wa6UJM1gV - analiz 90s sonra
+11:17:00 INFO    [info] Yeni coin: EyxuS82apc - analiz 90s sonra
+11:17:06 INFO    [info] Yeni coin: DNwsXT1Yks - analiz 90s sonra
+11:17:06 INFO    [info] Yeni coin: BaKcnNwxRp - analiz 90s sonra
+11:17:07 INFO    [info] Yeni coin: 2Y1LDP4dtv - analiz 90s sonra
+11:17:07 INFO    [info] Yeni coin: DARauQZaK3 - analiz 90s sonra
+11:17:08 INFO    [info] Yeni coin: 5o8GBS65Dp - analiz 90s sonra
+11:17:08 INFO    [info] Yeni coin: 7egnZpM6Jh - analiz 90s sonra
+11:17:09 INFO    [info] Yeni coin: BFqi3Xuaev - analiz 90s sonra
+11:17:09 INFO    [info] Yeni coin: Cqri7pVEPU - analiz 90s sonra
+11:17:10 INFO    [info] Yeni coin: 2nGXtJ15j8 - analiz 90s sonra
+11:17:10 INFO    [info] Yeni coin: GvMxhUaL5D - analiz 90s sonra
+11:17:11 INFO    [info] Yeni coin: AZBaTfSVTt - analiz 90s sonra
+11:17:11 WARNING RPC hiz limiti (429) - RPC_RPS dusurun veya plani yukseltin
+11:17:11 INFO    [info] Yeni coin: FMksR8R6ij - analiz 90s sonra
+11:17:13 INFO    [info] Yeni coin: BbuqDnLNok - analiz 90s sonra
+11:17:16 INFO    [info] Yeni coin: A9kTxAvYyY - analiz 90s sonra
+11:17:17 INFO    [info] Yeni coin: 7cbQcirCDu - analiz 90s sonra
+11:17:18 INFO    [info] Yeni coin: 2sXBPWNTbY - analiz 90s sonra
+11:17:19 INFO    [info] Yeni coin: DPcNx7Xazr - analiz 90s sonra
+INFO:     127.0.0.1:51395 - "GET /api/status HTTP/1.1" 200 OK
+INFO:     127.0.0.1:51396 - "GET /api/paper HTTP/1.1" 200 OK
+11:17:20 INFO    [info] Yeni coin: GDDjcqgJRB - analiz 90s sonra
+11:17:23 INFO    [info] Yeni coin: 2Cg2g8C7bW - analiz 90s sonra

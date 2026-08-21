@@ -1,0 +1,16 @@
+11:17:35 INFO    http://127.0.0.1:8000 adresinde baslatiliyor
+INFO:     Started server process [9428]
+INFO:     Waiting for application startup.
+11:17:35 INFO    Veritabani hazir: C:\Users\Lenovo\market-dominanter\trades.db
+11:17:35 WARNING WALLET_PRIVATE_KEY yok - sadece PAPER modu kullanilabilir
+11:17:35 INFO    [warn] PAPER modu aktif - gercek islem yapilmayacak
+11:17:35 INFO    [info] Strateji modu: LEGACY
+11:17:35 INFO    [success] Sunucu hazir
+11:17:35 INFO    [warn] Takip edilen cuzdan yok - once skorlayip takibe alin
+11:17:35 INFO    [info] Pozisyon takibi basladi
+INFO:     Application startup complete.
+INFO:     Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+INFO:     127.0.0.1:51402 - "WebSocket /ws" [accepted]
+INFO:     connection open
+11:17:36 INFO    [success] Helius websocket baglandi, pump.fun dinleniyor
+11:17:45 INFO    [success] Bot BASLATILDI

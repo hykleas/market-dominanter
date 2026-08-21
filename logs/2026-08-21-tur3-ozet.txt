@@ -1,0 +1,22 @@
+=== 3. TUR OZETI (10:22:05 - 11:11 reset ani) ===
+
+-- kapanan islemler --
+The Odyssean Owl          -33.22%  -0.03670 SOL  stop_loss
+The Happy Doggo           -32.37%  -0.03560 SOL  stop_loss
+outbid                    -49.38%  -0.05238 SOL  stop_loss
+bing chilling              -4.81%  -0.00897 SOL  trailing_stop
+kapanan toplam: -0.13365 SOL (4 islem)
+
+-- acik pozisyonlar (reset ile silindi) --
+Smoochie The Clone         -16.6%  0.83x  (0.1000 SOL)
+胆子真是肥嘟嘟的                    -1.8%  0.98x  (0.1000 SOL)
+Fih and Puh                 -2.5%  0.98x  (0.1000 SOL)
+In the Air Theory          +39.6%  1.40x  (0.1000 SOL)
+AVA FONTAINE               +88.1%  1.88x  (0.1000 SOL)
+The Paper Bag Cult          -1.5%  0.99x  (0.1000 SOL)
+acik gerceklesmemis: +0.10546 SOL
+
+NET (kapanan + acik): -0.02819 SOL
+
+karar: 448  ({'REJECTED': 438, 'BOUGHT': 10})
+gorulen coin: 448 | rpc: {'calls': 14532, 'rate_limited': 1568, 'failed': 0}
