@@ -18,6 +18,10 @@ log = logging.getLogger("market-dominanter")
 ROOT = Path(__file__).resolve().parent.parent
 SETTINGS_FILE = ROOT / "settings.json"
 
+# Alim tetikleyen tek iki mod. Bunlarin disindaki her deger sessizce "hicbir
+# motor calismiyor" demek olurdu, o yuzden update() bilinmeyeni reddeder.
+STRATEGY_MODES = ("copy", "legacy")
+
 
 @dataclass
 class Settings:
@@ -26,6 +30,10 @@ class Settings:
     #   "legacy" -> legacy_sniper (fresh-launch sniping, arsiv)
     # legacy_sniper her zaman dinler ve akisi panele basar; sadece "legacy"
     # modunda alim tetikler.
+    # BASKA HICBIR DEGER GECERLI DEGIL. 21 Agustos gecesi mod "sniper" yazildi:
+    # legacy_sniper "arsivde" deyip alimi atladi, copy_engine de bosta durdu,
+    # yani esikler ne olursa olsun alim imkansizdi. Artik update() bilinmeyen
+    # modu reddediyor (bkz. STRATEGY_MODES).
     strategy_mode: str = "copy"
 
     # --- KATMAN 2: canli kopyalama ---
@@ -153,6 +161,14 @@ class Settings:
         known = {f.name for f in fields(self)}
         for key, value in (data or {}).items():
             if key not in known:
+                continue
+            if key == "strategy_mode":
+                mode = str(value).strip().lower()
+                if mode not in STRATEGY_MODES:
+                    log.error("Bilinmeyen strategy_mode %r yoksayildi (gecerli: %s)",
+                              value, ", ".join(sorted(STRATEGY_MODES)))
+                    continue
+                self.strategy_mode = mode
                 continue
             current = getattr(self, key)
             try:

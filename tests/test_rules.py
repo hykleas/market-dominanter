@@ -67,6 +67,21 @@ def test_missing_volume_still_fails_when_curve_absent():
     assert not res.passed
 
 
+def test_unknown_strategy_mode_is_rejected(tmp_path, monkeypatch):
+    """Bilinmeyen mod = hicbir motor alim yapmaz, sessizce.
+
+    21 Agustos gecesi mod "sniper" yazilmisti: legacy_sniper "arsivde" deyip
+    alimi atliyor, copy_engine de bosta duruyordu.
+    """
+    monkeypatch.setattr(state, "SETTINGS_FILE", tmp_path / "settings.json")
+    s = state.Settings()
+    s.update({"strategy_mode": "sniper"})
+    assert s.strategy_mode == "copy"          # eski deger korunur
+    s.update({"strategy_mode": "LEGACY "})    # bosluk/buyuk harf tolere edilir
+    assert s.strategy_mode == "legacy"
+    assert set(state.STRATEGY_MODES) == {"copy", "legacy"}
+
+
 def test_analyze_delay_default_is_measured_value():
     """40sn'de coinlerin %95'i launch tabaninda -> 0 alim (bkz. GECE-2026-08-21)."""
     assert state.Settings().analyze_delay == 90.0
