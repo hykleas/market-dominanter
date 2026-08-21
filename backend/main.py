@@ -95,6 +95,10 @@ async def api_status():
     payload["stats"] = db.stats()
     payload["paper_wallet"] = trader.paper_wallet()
     payload["sol_usd"] = await trader.sol_price_usd()
+    # 429'lar loga 25'te bir yaziliyor, yani logdan siddeti okunamiyor. Eksik
+    # veri = coin reddi demek oldugu icin bu sayaclar filtre istatistigi kadar
+    # onemli: yuksek rate_limited, kural dagilimini guvenilmez yapar.
+    payload["rpc"] = dict(rpc.stats)
     return payload
 
 

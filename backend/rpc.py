@@ -19,7 +19,11 @@ _client: Optional[httpx.AsyncClient] = None
 # Helius' free plan allows ~10 requests/sec. Analysis is RPC-heavy (a busy launch
 # costs >100 getTransaction calls), so without a global pacer the calls collide,
 # come back 429, and every metric silently degrades to "no data" = coin rejected.
-RPC_RPS = float(os.getenv("RPC_RPS", "9"))
+# Varsayilan 9'du ama .env'inde RPC_RPS olmayan makinede 429 seli geliyor
+# (21 Agustos gunduz turu: 8 dakikada ~125 adet, log 25'te bir yazdigi icin
+# sadece 5 satir gorunuyordu). .env.example zaten 6.5 oneriyor; kod varsayilani
+# artik onunla ayni.
+RPC_RPS = float(os.getenv("RPC_RPS", "6.5"))
 stats = {"calls": 0, "rate_limited": 0, "failed": 0}
 
 
